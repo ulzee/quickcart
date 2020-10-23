@@ -12,6 +12,7 @@ const fs = require('fs');
 const args = yargs(process.argv).argv;
 
 app.instance();
+args.record = app.record;
 
 // launch greedy browser
 // 1. get proxy
@@ -29,6 +30,8 @@ function* browserEntry() {
 		},
 		args: [
 			'--no-sandbox',
+			'--disable-dev-shm-usage',
+			'--shm-size=1gb',
 			args.proxy ? `--proxy-server=${pspec.url}` : '',
 		],
 	});
@@ -48,9 +51,10 @@ function* browserEntry() {
 	const logFile = `logs/${app.record.spawnid}.log`;
 	page.setRequestInterception(true);
 	fs.writeFileSync(logFile, '', 'utf8');
+	page.setCacheEnabled(false);
 	page.on('request', res => {
 		const url = res.url();
-		const assets = ['.jpg', '.png', '.gif', '.jpeg', '.svg'];
+		const assets = ['.jpg', '.png', '.gif', '.jpeg', '.svg', '/i/'];
 		if (assets.some(one => url.includes(one))) {
 			res.abort();
 			return;
@@ -59,12 +63,18 @@ function* browserEntry() {
 			res.continue();
 		}
 
-		fs.appendFileSync(logFile, `${url}\n`, 'utf8');
+		// fs.appendFileSync(logFile, `${url}\n`, 'utf8');
+	});
+	page.on('response', res => {
+		const url = res.url();
+		if (res.status() > 300) {
+			fs.appendFileSync(logFile, `${res.status()}\t${url}\n`, 'utf8');
+		}
 	});
 
-	// log my ip according to web test
-	const ipv4 = yield actions.myip(page);
-	console.log(ipv4);
+	// // log my ip according to web test
+	// const ipv4 = yield actions.myip(page);
+	// console.log(ipv4);
 
 	console.log('[MAIN] Ready...');
 

@@ -16,7 +16,7 @@ const accountIcon = `.user > a`;
 const signin = `#signIn`;
 const emailInput = `#login-form-email`;
 const passInput = `#login-form-password`;
-const loginButton = `.btn.btn-block.btn-primary[type="submit"]`;
+const loginButton = `#signinCheck .btn`;
 // const cartlink = `.minicart-link`;
 const gotocart = `.addtocartlink > a`;
 // const gotocart = `.minicart-link`;
@@ -28,18 +28,25 @@ module.exports = {
 	*prime(page, args) {
 		const { email, pass } = args;
 
-		yield click(page, accountIcon);
+		yield page.waitForTimeout(5 * 1000);
+
+		log('Reload');
+		yield nav(page, domain);
+
+		yield page.waitForTimeout(1 * 1000);
+
+		yield click(page, accountIcon, wait=1);
 		log('Account');
 
-		yield click(page, signin);
+		yield click(page, signin, wait=1);
 		log('Signin');
-
-		yield page.waitForTimeout(1.5 * 1000);
 
 		yield page.waitForSelector(emailInput);
 		yield page.type(emailInput, email, { delay: 50 });
+		yield page.waitForTimeout(1.5 * 1000);
 		yield page.type(passInput, pass, { delay: 50 });
-		yield page.click(loginButton);
+		// yield page.waitForTimeout(1.5 * 1000);
+		yield page.click(loginButton, wait=1);
 		log('Email Pass');
 
 		yield page.waitForSelector('#showAccountModal');
@@ -51,9 +58,8 @@ module.exports = {
 
 		yield nav(page, url);
 
-		// FIXME: issue with atc loading
-		yield page.waitForTimeout(1.0 * 1000);
-		yield click(page, atc);
+		// NOTE: there can be issues w limited items and adding duplicates to cart
+		yield click(page, atc, options={visible: true});
 
 		yield click(page, gotocart);
 
@@ -91,15 +97,16 @@ module.exports = {
 
 		// HOTFIX: confirm address if popup
 		function* acceptAddress() {
-			const el='.xav-address-btn[data-my-address="true"]';
+			const el='.xav-address-btn[data-my-address="false"]';
 			while(true) {
 				yield page.waitForSelector(el, {
 					timeout: 10 * 60 * 1000 // 10 mins
-				});
+				}, { visible: true });
 				// it appeared, then click it
 				while (true) {
 					try {
 						yield page.click(el);
+						break;
 					}
 					catch(e) {
 						// console.log
@@ -107,30 +114,37 @@ module.exports = {
 				}
 			}
 		}
-		co(acceptAddress).then(console.log).catch(console.log);
+		// co(acceptAddress).then(console.log).catch(console.log);
 
+		yield page.waitForTimeout(1.5 * 1000);
 		yield click(page, '.submit-shipping');
 
 		// BILLING
-		yield page.waitForTimeout(1 * 1000);
-		yield click(page, '#addNewAddressbtn');
-
 		yield paste(page, '#billingFirstName', first);
 		yield paste(page, '#billingLastName', last);
 
 		yield paste(page, '#billingAddressOne', address);
 		yield paste(page, '#billingAddressTwo', address2);
-		yield sel(page, '#billingCountry', 'United States');
-		yield sel(page, '#billingState', 'California');
+		yield sel(page, '#billingCountry', 'US');
+		yield sel(page, '#billingState', 'CA');
 		yield paste(page, '#billingAddressCity', city);
 		yield paste(page, '#billingZipCode', zip);
 		yield paste(page, '#phoneNumber', simplePhone);
 
 		yield paste(page, '#cardNumber', number);
-		yield sel(page, '#expirationMonth', month);
+		yield sel(page, '#expirationMonth', parseInt(month));
 		yield sel(page, '#expirationYear', year);
+		yield click(page, '#saveCreditCard');
 		yield paste(page, '#securityCode', security);
+		// yield click(page, '.submit-payment');
 
-		yield page.waitForTimeout(10 * 1000);
+		// yield page.waitForSelector('.place-order');
+		// const validation = `logs/${args.record.spawnid}_final.jpeg`;
+		// yield page.screenshot({ path: validation, type: 'jpeg' });
+
+		// // TODO: enable
+		// // yield click(page, '.place-order');
+
+		yield page.waitForTimeout(100 * 1000);
 	},
 }
