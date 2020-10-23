@@ -1,0 +1,5 @@
+*.tsv
+*.txt
+*.DS_Store
+node_modules
+*.json
