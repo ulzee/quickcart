@@ -6,7 +6,8 @@ const puppeteer = require('puppeteer');
 const actions = require('./actions');
 const { proxy } = require('./utils');
 const { app } = require('./actions');
-const yargs = require('yargs/yargs')
+const yargs = require('yargs/yargs');
+const fs = require('fs');
 
 const args = yargs(process.argv).argv;
 
@@ -44,16 +45,21 @@ function* browserEntry() {
 		});
 	}
 
+	const logFile = `logs/${app.record.spawnid}.log`;
 	page.setRequestInterception(true);
+	fs.writeFileSync(logFile, '', 'utf8');
 	page.on('request', res => {
 		const url = res.url();
-		const assets = ['.jpg', '.png', '.gif', '.jpeg'];
+		const assets = ['.jpg', '.png', '.gif', '.jpeg', '.svg'];
 		if (assets.some(one => url.includes(one))) {
 			res.abort();
+			return;
 		}
 		else {
 			res.continue();
 		}
+
+		fs.appendFileSync(logFile, `${url}\n`, 'utf8');
 	});
 
 	// log my ip according to web test
