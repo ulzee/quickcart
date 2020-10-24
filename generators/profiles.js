@@ -1,13 +1,23 @@
 
-const utils = require('./utils');
+const utils = require('../utils');
 const Papa = require('papaparse');
 const fs = require('fs');
 const  { v4: uuid } = require('uuid');
+const { cachedDataVersionTag } = require('v8');
 
 const names = ['Ulzee An', 'Ulze An', 'Ulz An'];
 const mail = 'limecart.me';
-const desiredPerStore = 7; // further limited by payment method etc
-const stores = ['TARGET', 'GSTOP', 'SEARS', 'KOHLS', 'WALMART', 'BESTBUY'];
+const stores = [
+	// 'target',
+	// 'gamestop',
+	// 'sears',
+	// 'kohls',
+	// 'walmart',
+	'bestbuy'
+];
+
+// same address for everyone
+// accounts per store = min(# phone numbers, # names x # payments)
 
 let raw = fs.readFileSync('./assets/phones.tsv', 'utf8');
 const phones = Papa.parse(raw, { header: true }).data;
@@ -15,21 +25,29 @@ const phones = Papa.parse(raw, { header: true }).data;
 raw = fs.readFileSync('./assets/cards.tsv', 'utf8');
 const cards = Papa.parse(raw, { header: true }).data;
 
+const numCreate = Math.min(cards.length * names.length, phones.length);
+
 console.log('Phones:', phones.length);
 console.log('Cards:', cards.length);
-console.log('Desired:', desiredPerStore);
 console.log('Stores:', stores);
+console.log('Creating per store:', numCreate);
 
 let alph = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 let accounts = [];
-const numCreate = Math.min(cards.length, phones.length);
 stores.forEach(store => {
+	let create_index = 0;
 	names.forEach(name => {
-		for (let ii = 0; ii < numCreate; ii ++) {
+		cards.forEach(card => {
+
+			if (create_index >= numCreate) {
+				return;
+			}
+
+			const tag = alph[create_index];
 
 			const phrase = uuid().split('-')[0];
-			const user = `${alph[ii]}.${phrase}@${mail}`;
-			const pass = alph[ii] + '!' + uuid().split('-').slice(0, 2).join('');
+			const user = `${tag}.${phrase}@${mail}`;
+			const pass = tag + '!' + uuid().split('-').slice(0, 2).join('');
 
 			const base = {
 				store,
@@ -37,17 +55,19 @@ stores.forEach(store => {
 				pass,
 			};
 
-			const withPhone = Object.assign(base, phones[ii]);
+			const withPhone = Object.assign(base, phones[create_index]);
 			withPhone.phone = utils.simplifyPhone(withPhone.phone);
 
-			const withCard = Object.assign(withPhone, cards[ii]);
+			const withCard = Object.assign(withPhone, card);
 
 			const userInfo = withCard;
 
 			userInfo.name = name; // set jigged name
 
 			accounts.push(userInfo);
-		}
+
+			create_index ++;
+		});
 	});
 });
 
