@@ -23,17 +23,13 @@ const gotocart = `.addtocartlink > a`;
 const log = utils.taglog('GSTOP');
 global.log = log;
 
+const vendor = 'GSTOP';
+
 module.exports = {
+	vendor: 'GSTOP',
 	home: domain,
 	*prime(page, args) {
-		const { email, pass } = args;
-
-		yield page.waitForTimeout(5 * 1000);
-
-		log('Reload');
-		yield nav(page, domain);
-
-		yield page.waitForTimeout(1 * 1000);
+		const { account: { user, pass } } = args;
 
 		yield click(page, accountIcon, wait=1);
 		log('Account');
@@ -42,20 +38,22 @@ module.exports = {
 		log('Signin');
 
 		yield page.waitForSelector(emailInput);
-		yield page.type(emailInput, email, { delay: 50 });
-		yield page.waitForTimeout(1.5 * 1000);
+		yield page.type(emailInput, user, { delay: 50 });
 		yield page.type(passInput, pass, { delay: 50 });
-		// yield page.waitForTimeout(1.5 * 1000);
 		yield page.click(loginButton, wait=1);
 		log('Email Pass');
 
 		yield page.waitForSelector('#showAccountModal');
-
 	},
 	*checkout(page, args) {
-		const { url, paymentid, email, phoneid } = args;
-		log(url);
+		const {
+			url,
+			account: {
+				security,
+			}
+		} = args;
 
+		log(url);
 		yield nav(page, url);
 
 		// NOTE: there can be issues w limited items and adding duplicates to cart
@@ -65,86 +63,58 @@ module.exports = {
 
 		yield click(page, '.checkout-btn');
 
-		const {
-			number, month, year, security,
-			address, address2,
-			city, zip,
-			name
-		} = utils.payinfo(paymentid);
-		const {
-			phone,
-		} = utils.phone(parseInt(phoneid));
-		const simplePhone = utils.simplifyPhone(phone);
-		const { first, last } = utils.jigName(name);
-
-
-		// NOTE: Shipping will be prefilled (takes too long)
-		// // SHIPPING
-		// yield sel(page, '#shippingCountry', 'United States');
-		// yield sel(page, '#shippingState', 'California');
-		// yield page.waitForTimeout(2.5 * 1000);
-		// // HOTFIX: page does a dynamic load after country
-
-		// yield paste(page, '.email', email);
-		// yield paste(page, '#shippingFirstName', first);
-		// yield paste(page, '#shippingLastName', last);
-
-		// yield paste(page, '#shippingAddressOne', address);
-		// yield paste(page, '#shippingAddressTwo', address2);
-		// yield paste(page, '#shippingAddressCity', city);
-		// yield paste(page, '#shippingZipCode', zip);
-		// yield paste(page, '#shippingPhoneNumber', simplePhone);
-
+		// NOTE: prefilled account, this is no longer needed
 		// HOTFIX: confirm address if popup
-		function* acceptAddress() {
-			const el='.xav-address-btn[data-my-address="false"]';
-			while(true) {
-				yield page.waitForSelector(el, {
-					timeout: 10 * 60 * 1000 // 10 mins
-				}, { visible: true });
-				// it appeared, then click it
-				while (true) {
-					try {
-						yield page.click(el);
-						break;
-					}
-					catch(e) {
-						// console.log
-					}
-				}
-			}
-		}
+		// function* acceptAddress() {
+		// 	const el='.xav-address-btn[data-my-address="false"]';
+		// 	while(true) {
+		// 		yield page.waitForSelector(el, {
+		// 			timeout: 10 * 60 * 1000 // 10 mins
+		// 		}, { visible: true });
+		// 		// it appeared, then click it
+		// 		while (true) {
+		// 			try {
+		// 				yield page.click(el);
+		// 				break;
+		// 			}
+		// 			catch(e) {
+		// 				// console.log
+		// 			}
+		// 		}
+		// 	}
+		// }
 		// co(acceptAddress).then(console.log).catch(console.log);
 
-		yield page.waitForTimeout(1.5 * 1000);
 		yield click(page, '.submit-shipping');
 
-		// BILLING
-		yield paste(page, '#billingFirstName', first);
-		yield paste(page, '#billingLastName', last);
+		// // BILLING
+		yield paste(page, '#saved-payment-security-code', security);
+		// yield paste(page, '#billingFirstName', first);
+		// yield paste(page, '#billingLastName', last);
 
-		yield paste(page, '#billingAddressOne', address);
-		yield paste(page, '#billingAddressTwo', address2);
-		yield sel(page, '#billingCountry', 'US');
-		yield sel(page, '#billingState', 'CA');
-		yield paste(page, '#billingAddressCity', city);
-		yield paste(page, '#billingZipCode', zip);
-		yield paste(page, '#phoneNumber', simplePhone);
+		// yield paste(page, '#billingAddressOne', address);
+		// yield paste(page, '#billingAddressTwo', address2);
+		// yield sel(page, '#billingCountry', 'US');
+		// yield sel(page, '#billingState', 'CA');
+		// yield paste(page, '#billingAddressCity', city);
+		// yield paste(page, '#billingZipCode', zip);
+		// yield paste(page, '#phoneNumber', simplePhone);
 
-		yield paste(page, '#cardNumber', number);
-		yield sel(page, '#expirationMonth', parseInt(month));
-		yield sel(page, '#expirationYear', year);
-		yield click(page, '#saveCreditCard');
-		yield paste(page, '#securityCode', security);
-		// yield click(page, '.submit-payment');
+		// yield paste(page, '#cardNumber', number);
+		// yield sel(page, '#expirationMonth', parseInt(month));
+		// yield sel(page, '#expirationYear', year);
+		// yield click(page, '#saveCreditCard');
+		// yield paste(page, '#securityCode', security);
+		yield click(page, '.submit-payment');
 
-		// yield page.waitForSelector('.place-order');
-		// const validation = `logs/${args.record.spawnid}_final.jpeg`;
-		// yield page.screenshot({ path: validation, type: 'jpeg' });
+		if (args.debug) {
+			log('DEBUG (stopping before checkout)')
+			yield page.waitForTimeout(100 * 1000);
+			return;
+		}
 
-		// // TODO: enable
-		// // yield click(page, '.place-order');
+		// submit order
+		// yield click(page, '.place-order');
 
-		yield page.waitForTimeout(100 * 1000);
 	},
 }

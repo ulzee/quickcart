@@ -29,6 +29,17 @@ module.exports = {
 		console.log(selected);
 		return selected;
 	},
+	account(store, aid) {
+		const raw = fs.readFileSync('assets/accounts.tsv', 'utf8');
+		const entries = Papa.parse(raw, { header: true }).data.filter(ent => ent.store == store);
+
+
+		if (parseInt(aid) >= entries.length) {
+			throw new Error('Account ID out of range');
+		}
+
+		return entries[parseInt(aid)];
+	},
 	proxy: {
 		list(file, index=-1) {
 			// zproxy.lum-superproxy.io:22225:lum-customer-hl_92ee4e2f-zone-zone2-ip-181.214.185.43:yy4ns5z5us5i

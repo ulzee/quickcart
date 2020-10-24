@@ -1,18 +1,20 @@
 
 
 const co = require('co');
-const http = require('http');
 const puppeteer = require('puppeteer');
 const actions = require('./actions');
 const { proxy } = require('./utils');
 const { app } = require('./actions');
 const yargs = require('yargs/yargs');
 const fs = require('fs');
+const utils = require('./utils');
+let args = yargs(process.argv).argv;
 
-const args = yargs(process.argv).argv;
-
+const action = actions[args.action];
 app.instance();
 args.record = app.record;
+args.account = utils.account(args.action, args.accountid);
+console.log(args.account);
 
 // launch greedy browser
 // 1. get proxy
@@ -20,7 +22,7 @@ args.record = app.record;
 // 3. if site didnt make it, return to step 1
 function* browserEntry() {
 
-	const pspec = proxy.list('lumi.txt');
+	const pspec = proxy.list('lumi-shared.txt');
 
 	const browser = yield puppeteer.launch({
 		headless: false,
@@ -31,7 +33,6 @@ function* browserEntry() {
 		args: [
 			'--no-sandbox',
 			'--disable-dev-shm-usage',
-			'--shm-size=1gb',
 			args.proxy ? `--proxy-server=${pspec.url}` : '',
 		],
 	});
@@ -48,9 +49,7 @@ function* browserEntry() {
 		});
 	}
 
-	const logFile = `logs/${app.record.spawnid}.log`;
 	page.setRequestInterception(true);
-	fs.writeFileSync(logFile, '', 'utf8');
 	page.setCacheEnabled(false);
 	page.on('request', res => {
 		const url = res.url();
@@ -62,23 +61,20 @@ function* browserEntry() {
 		else {
 			res.continue();
 		}
-
-		// fs.appendFileSync(logFile, `${url}\n`, 'utf8');
 	});
+
+	// Log any responses that look bad (ban status etc)
+	const logFile = `logs/${app.record.spawnid}.log`;
+	fs.writeFileSync(logFile, '', 'utf8');
 	page.on('response', res => {
+		// TODO: take care of ban status 403
 		const url = res.url();
 		if (res.status() > 300) {
 			fs.appendFileSync(logFile, `${res.status()}\t${url}\n`, 'utf8');
 		}
 	});
 
-	// // log my ip according to web test
-	// const ipv4 = yield actions.myip(page);
-	// console.log(ipv4);
-
 	console.log('[MAIN] Ready...');
-
-	const action = actions[args.action]
 
 	// homepage
 	const navOk = yield actions.nav(page, action.home);
