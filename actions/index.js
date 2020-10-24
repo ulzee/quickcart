@@ -8,5 +8,4 @@ module.exports = {
 	paste: require('./paste'),
 	sel: require('./sel'),
 	app: require('./app'),
-	gamestop: require('./gamestop'),
 };

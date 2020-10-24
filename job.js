@@ -3,6 +3,7 @@
 const nav = require('./actions/nav');
 const co = require('co');
 const puppeteer = require('puppeteer');
+const stores = require('./stores');
 const actions = require('./actions');
 const { proxy } = require('./utils');
 const { app, pagesetup } = require('./actions');
@@ -11,11 +12,11 @@ const fs = require('fs');
 const utils = require('./utils');
 let args = yargs(process.argv).argv;
 
-const action = actions[args.action];
+const vendor = stores[args.store];
 const pspec = proxy.list('lumi-excl.txt');
 app.instance();
 args.record = app.record;
-args.account = utils.account(args.action, args.accountid);
+args.account = utils.account(args.store, args.accountid);
 args.proxy = pspec;
 console.log(args.account);
 
@@ -53,7 +54,7 @@ function* browserEntry() {
 	console.log('[MAIN] Ready...');
 
 	// homepage
-	const navOk = yield actions.nav.go(page, action.home);
+	const navOk = yield actions.nav.go(page, vendor.home);
 	if (!navOk) {
 		throw nav.errors.Banned;
 		return;
@@ -62,18 +63,18 @@ function* browserEntry() {
 	console.log('[MAIN] Nav...');
 
 	// prime checkout
-	yield action.prime(page, args);
+	yield vendor.prime(page, args);
 
 	if (args.url) {
 		// Immediate mode
-		yield action.checkout(page, args);
+		yield vendor.checkout(page, args);
 
 		yield page.waitForTimeout(10 * 1000);
 	}
 	else {
 		// Worker mode - waits for commands port 7000
 		const packet = yield app.standby();
-		yield action.checkout(page, packet);
+		yield vendor.checkout(page, packet);
 	}
 
 	yield browser.close();

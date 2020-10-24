@@ -1,11 +1,7 @@
 
 const co = require('co');
 const utils = require('../utils');
-const nav = require('./nav');
-const inp = require('./inp');
-const sel = require('./sel');
-const paste = require('./paste');
-const click = require('./click');
+const { nav, inp, sel, paste, click } = require('../actions');
 
 const domain = 'https://www.gamestop.com';
 // const ps5 = '/video-games/playstation-5/consoles/products/playstation-5/11108140.html?condition=New';
