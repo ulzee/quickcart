@@ -1,30 +1,32 @@
 
 
+const nav = require('./actions/nav');
 const co = require('co');
 const puppeteer = require('puppeteer');
 const actions = require('./actions');
 const { proxy } = require('./utils');
-const { app } = require('./actions');
+const { app, pagesetup } = require('./actions');
 const yargs = require('yargs/yargs');
 const fs = require('fs');
 const utils = require('./utils');
 let args = yargs(process.argv).argv;
 
 const action = actions[args.action];
+const pspec = proxy.list('lumi-shared.txt');
 app.instance();
 args.record = app.record;
 args.account = utils.account(args.action, args.accountid);
+args.proxy = pspec;
 console.log(args.account);
 
 // launch greedy browser
 // 1. get proxy
 // 2. go to site
 // 3. if site didnt make it, return to step 1
+let browser = null;
 function* browserEntry() {
 
-	const pspec = proxy.list('lumi-shared.txt');
-
-	const browser = yield puppeteer.launch({
+	browser = yield puppeteer.launch({
 		headless: false,
 		defaultViewport: {
 			width: parseInt(1680 + (100 * Math.random() - 200)),
@@ -33,55 +35,30 @@ function* browserEntry() {
 		args: [
 			'--no-sandbox',
 			'--disable-dev-shm-usage',
-			args.proxy ? `--proxy-server=${pspec.url}` : '',
+			args.proxy ? `--proxy-server=${args.proxy.url}` : '',
 		],
 	});
-
-
-	// TODO:
-	// check for load times
 
 	const page = yield browser.newPage();
 	if (args.proxy) {
 		yield page.authenticate({
-			username: pspec.name,
-			password: pspec.pass,
+			username: args.proxy.name,
+			password: args.proxy.pass,
 		});
 	}
 
-	page.setRequestInterception(true);
-	page.setCacheEnabled(false);
-	page.on('request', res => {
-		const url = res.url();
-		const assets = ['.jpg', '.png', '.gif', '.jpeg', '.svg', '/i/'];
-		if (assets.some(one => url.includes(one))) {
-			res.abort();
-			return;
-		}
-		else {
-			res.continue();
-		}
-	});
-
-	// Log any responses that look bad (ban status etc)
-	const logFile = `logs/${app.record.spawnid}.log`;
-	fs.writeFileSync(logFile, '', 'utf8');
-	page.on('response', res => {
-		// TODO: take care of ban status 403
-		const url = res.url();
-		if (res.status() > 300) {
-			fs.appendFileSync(logFile, `${res.status()}\t${url}\n`, 'utf8');
-		}
-	});
+	// add listeners etc...
+	pagesetup(page, args);
 
 	console.log('[MAIN] Ready...');
 
 	// homepage
-	const navOk = yield actions.nav(page, action.home);
+	const navOk = yield actions.nav.go(page, action.home);
 	if (!navOk) {
-		yield browser.close();
-		return setImmediate(main);
+		throw nav.errors.Banned;
+		return;
 	}
+
 	console.log('[MAIN] Nav...');
 
 	// prime checkout
@@ -107,7 +84,26 @@ function main() {
 		console.log('[MAIN] Finished');
 		console.log('[MAIN]', new Date());
 	})
-	.catch(console.log);
+	.catch(e => {
+		if (e.name == nav.errors.Banned.name) {
+			console.log('[MAIN] RETRYING');
+
+			const blacklistFile = `assets/blacklist.txt`;
+			fs.appendFileSync(blacklistFile, `${args.proxy.raw}\n`, 'utf8');
+
+			if (browser) {
+				browser.close()
+				.then(() => setImmediate(main))
+				.catch(console.log);
+			}
+			else {
+				setImmediate(main);
+			}
+		}
+		else {
+			console.log(e);
+		}
+	});
 }
 
 main();

@@ -54,7 +54,12 @@ module.exports = {
 		} = args;
 
 		log(url);
-		yield nav(page, url);
+		const navOk = yield nav.go(page, url);
+
+		if (!navOk) {
+			throw nav.errors.Banned;
+			return;
+		}
 
 		// NOTE: there can be issues w limited items and adding duplicates to cart
 		yield click(page, atc, options={visible: true});
@@ -114,6 +119,7 @@ module.exports = {
 		}
 
 		// submit order
+		// TODO: enable
 		// yield click(page, '.place-order');
 
 	},
