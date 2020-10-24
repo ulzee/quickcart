@@ -31,7 +31,9 @@ module.exports = {
 	},
 	account(store, aid) {
 		const raw = fs.readFileSync('assets/accounts.tsv', 'utf8');
-		const entries = Papa.parse(raw, { header: true }).data.filter(ent => ent.store == store);
+		const entries = Papa.parse(raw, { header: true })
+			.data
+			.filter(ent => ent.store == store);
 
 
 		if (parseInt(aid) >= entries.length) {

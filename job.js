@@ -12,7 +12,7 @@ const utils = require('./utils');
 let args = yargs(process.argv).argv;
 
 const action = actions[args.action];
-const pspec = proxy.list('lumi-shared.txt');
+const pspec = proxy.list('lumi-excl.txt');
 app.instance();
 args.record = app.record;
 args.account = utils.account(args.action, args.accountid);

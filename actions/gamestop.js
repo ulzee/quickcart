@@ -90,6 +90,15 @@ module.exports = {
 		// }
 		// co(acceptAddress).then(console.log).catch(console.log);
 
+		// Set billing same as shipping
+		yield page.waitForSelector('.use-as-billing-block');
+		const sameBillingChecked = yield page.evaluate(() => {
+			return document.querySelector('.use-as-billing-block .custom-checkbox').ariaChecked;
+		});
+		if (sameBillingChecked == 'false') {
+			yield click(page, '.use-as-billing-block .custom-checkbox');
+		}
+
 		yield click(page, '.submit-shipping');
 
 		// // BILLING

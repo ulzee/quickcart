@@ -45,7 +45,9 @@ const commands = [];
 
 module.exports = {
 	record,
-	instance() {
+	instance(enabled=false) {
+		if (!enabled) return;
+
 		app = express();
 		app.use(bodyParser.urlencoded({ extended: false }));
 		app.use(bodyParser.json());
