@@ -14,13 +14,17 @@ function* main() {
 
 	const raw = fs.readFileSync('assets/accounts.tsv', 'utf8');
 	let accounts = Papa.parse(raw, { header: true }).data.filter(ent => ent.store == args.store);
+	if (args.skip) {
+		accounts = accounts.slice(args.skip);
+	}
+
 
 	while (accounts.length) {
 		const spec = accounts[0];
 
-		console.log(spec.user);
+		console.log(`[${accounts.length}] ${spec.user}`);
 
-		args.proxy = proxy.list('lumi-shared.txt');
+		// args.proxy = proxy.list('lumi-shared.txt');
 
 		try {
 
@@ -38,10 +42,11 @@ function* main() {
 			});
 
 			const page = yield browser.newPage();
-			yield page.authenticate({
-				username: args.proxy.name,
-				password: args.proxy.pass,
-			});
+			if (args.proxy)
+				yield page.authenticate({
+					username: args.proxy.name,
+					password: args.proxy.pass,
+				});
 			page.setRequestInterception(true);
 			page.on('request', res => {
 				const url = res.url();
