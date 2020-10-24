@@ -32,8 +32,6 @@ module.exports = {
 
 		const ok = navOk && !banned;
 
-		console.log(navOk, banned);
-
 		return ok;
 	}
 }

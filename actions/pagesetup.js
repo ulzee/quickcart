@@ -38,8 +38,9 @@ module.exports = (page, args) => {
 
 			if ([401, 403, 405, 501, 504].includes(status)) {
 				// save this proxy info to a blacklist
-				// TODO: this doesnt catch dynamic bans (i.e. during login etc)
-				fs.appendFileSync(blacklistFile, `${args.proxy.url}\n`, 'utf8');
+
+				// FIXME: this doesnt catch dynamic bans (i.e. during login etc)
+
 				banned = true;
 			}
 		}
