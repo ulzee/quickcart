@@ -6,7 +6,7 @@ module.exports = (page, args) => {
 
 	page.setDefaultNavigationTimeout(5 * 1000)
 
-	page.setCacheEnabled(false);
+	page.setCacheEnabled(true);
 
 	// don't load any images that eat up bandwidth and time
 	page.setRequestInterception(true);

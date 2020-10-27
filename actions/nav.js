@@ -1,9 +1,16 @@
 
 banned = false;
 
+class BannedError extends Error {
+	constructor(message) {
+		super(message);
+	}
+}
+
+
 module.exports = {
 	errors: {
-		Banned: new Error('IP is Banned'),
+		Banned: BannedError,
 	},
 	go: function*(page, url) {
 		let t0 = new Date();
@@ -31,6 +38,10 @@ module.exports = {
 		// TODO: check website loaded in time limit
 
 		const ok = navOk && !banned;
+
+		if (!ok) {
+			throw new BannedError();
+		}
 
 		return ok;
 	}

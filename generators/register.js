@@ -7,6 +7,7 @@ const puppeteer = require('puppeteer');
 let args = yargs(process.argv).argv;
 const fs = require('fs');
 const Papa = require('papaparse');
+const { profile } = require('console');
 
 let browser = null;
 
@@ -19,12 +20,16 @@ function* main() {
 	}
 
 
+	let profile_index = 1;
 	while (accounts.length) {
 		const spec = accounts[0];
+		if (profile_index > 1)
+			spec.profile_index = profile_index;
+		profile_index ++;
 
 		console.log(`[${accounts.length}] ${spec.user}`);
 
-		// args.proxy = proxy.list('lumi-shared.txt');
+		// args.proxy = proxy.list('lumi-excl.txt');
 
 		try {
 

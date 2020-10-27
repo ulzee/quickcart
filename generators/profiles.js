@@ -25,7 +25,10 @@ const phones = Papa.parse(raw, { header: true }).data;
 raw = fs.readFileSync('./assets/cards.tsv', 'utf8');
 const cards = Papa.parse(raw, { header: true }).data;
 
-const numCreate = Math.min(cards.length * names.length, phones.length);
+const maxCreate = 7;
+const numCreate = Math.min(
+	maxCreate,
+	Math.min(cards.length * names.length, phones.length));
 
 console.log('Phones:', phones.length);
 console.log('Cards:', cards.length);

@@ -17,7 +17,8 @@ const pspec = proxy.list('lumi-excl.txt');
 app.instance();
 args.record = app.record;
 args.account = utils.account(args.store, args.accountid);
-args.proxy = pspec;
+// args.proxy = pspec;
+args.logid = `${args.store}_${args.spawnid}_${args.accountid}`;
 console.log(args.account);
 
 // launch greedy browser
@@ -25,13 +26,14 @@ console.log(args.account);
 // 2. go to site
 // 3. if site didnt make it, return to step 1
 let browser = null;
+let page = null;
 function* browserEntry() {
 
 	browser = yield puppeteer.launch({
 		headless: false,
 		defaultViewport: {
-			width: parseInt(1680 + (100 * Math.random() - 200)),
-			height: parseInt(868 + (100 * Math.random() - 200))
+			width: parseInt(1570 + (100 * Math.random() - 200)),
+			height: parseInt(1254 + (100 * Math.random() - 200))
 		},
 		args: [
 			'--no-sandbox',
@@ -40,7 +42,7 @@ function* browserEntry() {
 		],
 	});
 
-	const page = yield browser.newPage();
+	page = yield browser.newPage();
 	if (args.proxy) {
 		yield page.authenticate({
 			username: args.proxy.name,
@@ -54,29 +56,24 @@ function* browserEntry() {
 	console.log('[MAIN] Ready...');
 
 	// homepage
-	const navOk = yield actions.nav.go(page, vendor.home);
-	if (!navOk) {
-		throw nav.errors.Banned;
-		return;
-	}
+	yield actions.nav.go(page, vendor.home);
 
 	console.log('[MAIN] Nav...');
 
-	// prime checkout
+	// preload as much as possible
 	yield vendor.prime(page, args);
 
-	if (args.url) {
-		// Immediate mode
-		yield vendor.checkout(page, args);
+	// goto the product stie
+	yield vendor.visit(page, args.url);
 
-		yield page.waitForTimeout(10 * 1000);
-	}
-	else {
-		// Worker mode - waits for commands port 7000
-		const packet = yield app.standby();
-		yield vendor.checkout(page, packet);
-	}
+	// wait until product is ready
+	// TODO: logic differs for each store
 
+	// Checkout logic
+	yield vendor.checkout(page, args);
+
+	// Closing out
+	yield page.waitForTimeout(10 * 1000);
 	yield browser.close();
 }
 
@@ -86,7 +83,7 @@ function main() {
 		console.log('[MAIN]', new Date());
 	})
 	.catch(e => {
-		if (e.name == nav.errors.Banned.name) {
+		if (e instanceof nav.errors.Banned) {
 			console.log('[MAIN] RETRYING');
 
 			const blacklistFile = `assets/blacklist.txt`;
@@ -103,6 +100,12 @@ function main() {
 		}
 		else {
 			console.log(e);
+			if (browser) {
+				page.screenshot({path: `logs/er_${args.logid}.png`})
+				.then(() => browser.close())
+				.then(() => console.log('[MAIN] Errord out'))
+				.catch(console.log);
+			}
 		}
 	});
 }
