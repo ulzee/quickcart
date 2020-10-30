@@ -16,6 +16,52 @@ global.log = log;
 // 	});
 // }
 
+function* waitForSpinner(page) {
+	// wait to see spinner
+	let waiting = true;
+	while (waiting) {
+		const loading = yield page.evaluate(() => {
+			return getComputedStyle(document.querySelector('.page-spinner'), ':after').visibility;
+		});
+
+		if (loading == 'visible') waiting = false;
+		else yield page.waitForTimeout(50);
+	}
+
+	// wait for spinner to go away
+	waiting = true;
+	while (waiting) {
+		const loading = yield page.evaluate(() => {
+			return getComputedStyle(document.querySelector('.page-spinner'), ':after').visibility;
+		});
+
+		if (loading == 'hidden') waiting = false;
+		else yield page.waitForTimeout(50);
+	}
+
+	// // wait to see spinner
+	// waiting = true;
+	// while (waiting) {
+	// 	const loading = yield page.evaluate(() => {
+	// 		return getComputedStyle(document.querySelector('.page-spinner'), ':after').visibility;
+	// 	});
+
+	// 	if (loading == 'visible') waiting = false;
+	// 	else yield page.waitForTimeout(50);
+	// }
+
+	// // wait for spinner to go away
+	// waiting = true;
+	// while (waiting) {
+	// 	const loading = yield page.evaluate(() => {
+	// 		return getComputedStyle(document.querySelector('.page-spinner'), ':after').visibility;
+	// 	});
+
+	// 	if (loading == 'hidden') waiting = false;
+	// 	else yield page.waitForTimeout(50);
+	// }
+}
+
 module.exports = {
 	vendor,
 	home: domain,
@@ -37,7 +83,7 @@ module.exports = {
 
 		yield click(page, '.cia-form__controls__submit');
 
-		yield page.waitForSelector('.pl-flex-carousel-slider');
+		yield page.waitForSelector('.widget-primary-message');
 	},
 	*visit(page, url) {
 		yield nav.go(page, url);
@@ -67,16 +113,21 @@ module.exports = {
 
 		yield click(page, '.add-to-cart-button');
 
+		yield page.waitForSelector('.go-to-cart-button');
+		yield page.waitForTimeout(100);
 		yield click(page, '.go-to-cart-button');
 
 		yield page.waitForSelector('.change-store-link');
 		yield page.waitForSelector('.price-summary__total-value');
-		yield page.waitForTimeout(0.5 * sec);
+		yield page.waitForSelector('.cart-item__image');
+		yield page.waitForTimeout(100);
 		yield click(page, '.checkout-buttons__checkout .btn-primary');
 
-		yield page.waitForSelector('.ispu-curbside-new__option__content');
 		yield page.waitForSelector('.button__fast-track');
-		yield click(page, 'button[aria-label="Curbside."]');
+
+
+		yield waitForSpinner(page);
+
 
 		// CVV input may be asked
 		const cardInput = yield page.evaluate(() =>
@@ -87,17 +138,17 @@ module.exports = {
 			yield page.type('#credit-card-cvv', security);
 		}
 
+		// submit order
+		yield click(page, '.button__fast-track')
+
 		if (args.debug) {
 			log('DEBUG (stopping before checkout)')
 			yield page.waitForTimeout(100 * 1000);
 			return;
 		}
 
-		// submit order
-		yield click(page, '.button__fast-track');
-
 		yield page.waitForTimeout(10 * sec);
 		yield page.screenshot({path: `logs/ok_${logid}.png`});
-
+		yield page.waitForTimeout(10 * sec);
 	},
 }
