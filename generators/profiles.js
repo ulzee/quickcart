@@ -5,15 +5,15 @@ const fs = require('fs');
 const  { v4: uuid } = require('uuid');
 const { cachedDataVersionTag } = require('v8');
 
-const names = ['Ulzee An', 'Ulze An', 'Ulz An'];
+const names = ['Ulzee An'];
 const mail = 'limecart.me';
 const stores = [
-	// 'target',
+	'target',
 	// 'gamestop',
 	// 'sears',
 	// 'kohls',
 	// 'walmart',
-	'bestbuy'
+	// 'bestbuy'
 ];
 
 // same address for everyone
@@ -28,7 +28,7 @@ const cards = Papa.parse(raw, { header: true }).data;
 const maxCreate = 7;
 const numCreate = Math.min(
 	maxCreate,
-	Math.min(cards.length * names.length, phones.length));
+	Math.min(cards.length, phones.length));
 
 console.log('Phones:', phones.length);
 console.log('Cards:', cards.length);

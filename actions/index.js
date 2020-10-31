@@ -7,5 +7,6 @@ module.exports = {
 	click: require('./click'),
 	paste: require('./paste'),
 	sel: require('./sel'),
+	any: require('./any'),
 	app: require('./app'),
 };
