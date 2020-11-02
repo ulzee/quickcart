@@ -12,7 +12,7 @@ module.exports = (page, args) => {
 	page.setRequestInterception(true);
 	page.on('request', res => {
 		const url = res.url();
-		const assets = ['.jpg', '.png', '.gif', '.jpeg', '.svg', '/i/'];
+		const assets = ['.jpg', '.png', '.gif', '.jpeg', '.svg', '/i/', 'image', 'webp'];
 		if (assets.some(one => url.includes(one))) {
 			res.abort();
 			return;

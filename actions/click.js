@@ -18,7 +18,7 @@ function* clickUntilSuccess(page, elem) {
 	}
 }
 
-module.exports = function* (page, elem, wait=-1, check=false, options={ visible: true }) {
+module.exports = function* (page, elem, wait=-1, check=false, delay=0, options={ visible: true }) {
 	global.log(elem);
 
 	if (check) {
@@ -33,6 +33,7 @@ module.exports = function* (page, elem, wait=-1, check=false, options={ visible:
 	}
 
 	yield page.waitForSelector(elem, options);
+	if (delay) yield page.waitForTimeout(delay * 1000);
 	yield clickUntilSuccess(page, elem);
 
 	if (wait != -1) {

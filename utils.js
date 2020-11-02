@@ -31,6 +31,23 @@ module.exports = {
 		console.log(selected);
 		return selected;
 	},
+	blacklisted({ ip, proxy, add }, listfile='assets/blacklist.txt') {
+		const raw = fs.readFileSync(listfile, 'utf8');
+		const entries = raw.split('\n');
+
+		if (add) {
+			console.log('[BLACKLIST]', add);
+			entries.push(add);
+			fs.writeFileSync(listfile, entries.join('\n'), 'utf8');
+			return;
+		}
+
+		console.log('[BLACKLIST] Checking against:', entries.length);
+		if (ip && entries.includes(ip) || proxy && entries.includes(proxy)) {
+			return true;
+		}
+		return false;
+	},
 	account(store, aid) {
 		const raw = fs.readFileSync('assets/accounts.tsv', 'utf8');
 		const entries = Papa.parse(raw, { header: true })

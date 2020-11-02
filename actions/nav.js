@@ -15,6 +15,12 @@ class SlowError extends Error {
 	}
 }
 
+class BlacklistedError extends Error {
+	constructor(message) {
+		super(message);
+	}
+}
+
 function* go(page, url) {
 	let t0 = new Date();
 	let navOk = true;
@@ -53,19 +59,19 @@ module.exports = {
 	errors: {
 		Banned: BannedError,
 		Slow: SlowError,
+		Blacklisted: BlacklistedError,
 	},
 	go,
-	bench: function*(page, url, waitFor) {
+	bench: function*(page, url, waitFor, allowedLoadTime=7) {
 		if (!waitFor) {
 			throw new Error('Please choose a selector.');
 		}
 
 		// Page load time is not enough, we should also measure load of active els
 		const timeUntilReady = new Date();
-		const ok = yield go(page, url);
-
+		yield go(page, url);
 		try {
-			yield page.waitForSelector(waitFor, { timeout: 5 * sec });
+			yield page.waitForSelector(waitFor, { timeout: allowedLoadTime * sec });
 		}
 		catch(e) {
 			// selector was not ready at this time

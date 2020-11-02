@@ -1,13 +1,12 @@
 
+const nav = require('./nav');
+const { sec } = require('../utils');
+
 module.exports = function* myip(page) {
-	yield page.goto('https://whatismyipaddress.com/');
-	yield page.waitForSelector('#ipv4');
-	const ipv4 = yield page.evaluate(() => {
-		const el = document.querySelector('#ipv4 > a');
-		if (el)
-			return el.text;
-		else
-			return 'ipv6';
-	})
-	return ipv4;
+	yield nav.go(page, 'https://ifconfig.co/');
+	yield page.waitForTimeout(3 * sec);
+	yield page.waitForSelector('.ip');
+	const myip = yield page.evaluate(() => document.querySelector('.ip').innerHTML);
+
+	return myip;
 }

@@ -5,7 +5,7 @@ const co = require('co');
 const puppeteer = require('puppeteer');
 const stores = require('./stores');
 const actions = require('./actions');
-const { proxy } = require('./utils');
+const { proxy, sec } = require('./utils');
 const { app, pagesetup } = require('./actions');
 const yargs = require('yargs/yargs');
 const fs = require('fs');
@@ -18,7 +18,7 @@ app.instance();
 args.record = app.record;
 args.account = utils.account(args.store, args.accountid);
 args.proxy = pspec;
-args.logid = `${args.store}_${args.spawnid}_${args.accountid}`;
+args.logid = `${args.store}_${args.record.spawnid}_${args.accountid}`;
 console.log(args.account);
 
 // launch greedy browser
@@ -55,6 +55,15 @@ function* browserEntry() {
 
 	console.log('[MAIN] Ready...');
 
+	// verify my IP
+	const myip = yield actions.myip(page);
+	args.myip = myip;
+	console.log('[MY IP]:', myip);
+
+	if (utils.blacklisted({ ip: myip })) {
+		throw new actions.nav.errors.Blacklisted();
+	}
+
 	// homepage
 	yield actions.nav.go(page, vendor.home);
 
@@ -83,12 +92,20 @@ function main() {
 		console.log('[MAIN]', new Date());
 	})
 	.catch(e => {
-		if (e instanceof nav.errors.Banned || e instanceof nav.errors.Slow) {
+		const retry = e instanceof nav.errors.Banned
+			|| e instanceof nav.errors.Slow
+			|| e instanceof nav.errors.Blacklisted;
+
+		const blacklist = e instanceof nav.errors.Banned
+			|| e instanceof nav.errors.Slow;
+
+		if (blacklist) {
+			utils.blacklisted({ add: args.myip });
+		}
+
+		if (retry) {
 			console.log(e);
 			console.log('[MAIN] RETRYING');
-
-			const blacklistFile = `assets/blacklist.txt`;
-			fs.appendFileSync(blacklistFile, `${args.proxy.raw}\n`, 'utf8');
 
 			if (browser) {
 				browser.close()
