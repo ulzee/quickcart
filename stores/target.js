@@ -5,6 +5,7 @@ const { nav, any, inp, sel, paste, click } = require('../actions');
 
 const domain = 'https://www.target.com';
 
+const vendor = 'TARGET';
 const log = utils.taglog(vendor);
 global.log = log;
 
@@ -22,11 +23,15 @@ module.exports = {
 		yield page.type('#username', user, { delay: 10 });
 		yield page.type('#password', pass, { delay: 10 });
 
-		yield page.waitForSelector(3 * sec);
+		yield page.waitForTimeout(3 * sec);
 
 		yield page.click('#login');
 
-		yield page.waitForSelector(5 * sec);
+		yield page.waitForSelector('label[for="phone"]');
+
+		yield nav.go(page, domain);
+
+		yield page.waitForTimeout(5 * sec);
 		yield page.waitForSelector('.storyblockRiftRow');
 	},
 	*visit(page, url) {
@@ -45,32 +50,53 @@ module.exports = {
 			account: {
 				security,
 			},
-			record: { logid },
+			logid,
 		} = args;
 
 		log(url);
 
-		const buttonSel = yield any(page, [
-			'button[data-test="orderPickupButton"]',
-			'button[data-test="shipToStoreButton"]'])
-		log('Button: ' + buttonSel);
-		yield page.click(buttonSel);
 
+
+		// run out of stock check
+		let oos = false;
+		page.waitForSelector('div[data-test="outOfStockMessage"]')
+		.then(() => {
+			oos = true;
+			log('OOS Message Detected...');
+		})
+		.catch(e => e);
+
+		// click the first available atc button
+		try {
+			yield page.waitForSelector('button[data-test="orderPickupButton"]');
+		}
+		catch(e) {
+			if (oos) {
+				throw new Error('OUT OF STOCK!');
+			}
+			throw new Error('Pickup not available!');
+		}
+		yield page.click('button[data-test="orderPickupButton"]');
+
+		// yield page.waitForSelector(30 * 60 * sec);
+
+		// wait for confirmation prompt then go to cart
 		yield page.waitForSelector('button[aria-label="close"]');
-		yield click(page, '#cart');
+		yield nav.go(page, 'https://www.target.com/co-cart');
 
+		// proceed checkout
 		yield click(page, 'button[data-test="checkout-button"]');
 
+		// input payment then checkout
 		yield page.waitForSelector('#creditCardInput-cvv');
 		yield page.waitForSelector('button[data-test="placeOrderButton"]');
-		if (args.debug) {
-			security == '000';
-		}
 		yield page.type('#creditCardInput-cvv', security, { delay: 10 });
 
-		// checkout
-		yield click(page, 'button[data-test="placeOrderButton"]');
+		if (args.debug == undefined || args.debug == false) {
+			yield click(page, 'button[data-test="placeOrderButton"]');
+		}
 
+		// checkout
 		yield page.waitForTimeout(10 * sec);
 		yield page.screenshot({path: `logs/ok_${logid}.png`});
 		yield page.waitForTimeout(10 * sec);
