@@ -3,6 +3,8 @@ const fs = require('fs');
 const Papa = require('papaparse');
 
 module.exports = {
+	sec: 1000,
+	mnt: 60 * 1000,
 	taglog: (tag) => (msg) => console.log(`[${tag}] ${msg}`),
 	payinfo(pid) {
 		const raw = fs.readFileSync('assets/pay.tsv', 'utf8');

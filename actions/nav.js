@@ -1,4 +1,6 @@
 
+const { sec } = require('../utils');
+
 banned = false;
 
 class BannedError extends Error {
@@ -7,42 +9,70 @@ class BannedError extends Error {
 	}
 }
 
+class SlowError extends Error {
+	constructor(message) {
+		super(message);
+	}
+}
+
+function* go(page, url) {
+	let t0 = new Date();
+	let navOk = true;
+
+	// NAV
+	let res = null;
+	try {
+		res = yield page.goto(url, {
+			waitUntil: 'domcontentloaded',
+		});
+	}
+	catch (e) {
+		if (e.name == 'TimeoutError') {
+			console.log('[MAIN] Timed out!');
+		}
+		else {
+			console.log(e);
+		}
+	}
+
+	let elapsed = (new Date() - t0) / 1000;
+	console.log(`[NAV - GO] Elapsed ${parseInt(elapsed)}s`);
+
+	// TODO: check website loaded in time limit
+
+	const ok = navOk && !banned;
+
+	if (!ok) {
+		throw new BannedError();
+	}
+
+	return ok;
+}
 
 module.exports = {
 	errors: {
 		Banned: BannedError,
+		Slow: SlowError,
 	},
-	go: function*(page, url) {
-		let t0 = new Date();
-		let navOk = true;
+	go,
+	bench: function*(page, url, waitFor) {
+		if (!waitFor) {
+			throw new Error('Please choose a selector.');
+		}
 
-		// NAV
-		let res = null;
+		// Page load time is not enough, we should also measure load of active els
+		const timeUntilReady = new Date();
+		const ok = yield go(page, url);
+
 		try {
-			res = yield page.goto(url, {
-				waitUntil: 'domcontentloaded',
-			});
+			yield page.waitForSelector(waitFor, { timeout: 5 * sec });
 		}
-		catch (e) {
-			if (e.name == 'TimeoutError') {
-				console.log('[MAIN] Timed out!');
-			}
-			else {
-				console.log(e);
-			}
+		catch(e) {
+			// selector was not ready at this time
+			throw new SlowError();
 		}
 
-		let elapsed = (new Date() - t0) / 1000;
-		console.log(`[MAIN] Elapsed ${parseInt(elapsed)}s`);
-
-		// TODO: check website loaded in time limit
-
-		const ok = navOk && !banned;
-
-		if (!ok) {
-			throw new BannedError();
-		}
-
-		return ok;
-	}
+		const elapsed = (new Date() - timeUntilReady) / sec;
+		console.log('[NAV - BENCH] Page ready in:', elapsed);
+	},
 }

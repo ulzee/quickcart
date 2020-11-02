@@ -13,11 +13,11 @@ const utils = require('./utils');
 let args = yargs(process.argv).argv;
 
 const vendor = stores[args.store];
-const pspec = proxy.list('lumi-excl.txt');
+const pspec = proxy.list('lumi-rotate.txt');
 app.instance();
 args.record = app.record;
 args.account = utils.account(args.store, args.accountid);
-// args.proxy = pspec;
+args.proxy = pspec;
 args.logid = `${args.store}_${args.spawnid}_${args.accountid}`;
 console.log(args.account);
 
@@ -83,7 +83,8 @@ function main() {
 		console.log('[MAIN]', new Date());
 	})
 	.catch(e => {
-		if (e instanceof nav.errors.Banned) {
+		if (e instanceof nav.errors.Banned || e instanceof nav.errors.Slow) {
+			console.log(e);
 			console.log('[MAIN] RETRYING');
 
 			const blacklistFile = `assets/blacklist.txt`;

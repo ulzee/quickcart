@@ -16,7 +16,18 @@ module.exports = {
 			account: { user, pass },
 		} = args;
 
+		// give up on this IP if pages too slow
+		yield nav.bench(page, args.url, waitFor='div[data-test="product-price"]');
+
+		yield nav.go(page, domain);
+		yield page.waitForTimeout(3 * sec);
+
+		yield page.waitForSelector('#account');
+
+		yield page.waitForTimeout(3 * sec);
 		yield click(page, '#account')
+
+		yield page.waitForTimeout(3 * sec);
 		yield click(page, '#accountNav-signIn');
 
 		yield page.waitForSelector('#username');
@@ -35,8 +46,7 @@ module.exports = {
 		yield page.waitForSelector('.storyblockRiftRow');
 	},
 	*visit(page, url) {
-		yield nav.go(page, url);
-		yield page.waitForSelector('div[data-test="product-price"]');
+		yield nav.bench(page, url, sel='div[data-test="product-price"]');
 	},
 	*standby(page, url) {
 		// TODO:
