@@ -1,4 +1,6 @@
 
+// DEPRECATED:
+
 const co = require('co');
 const utils = require('../utils');
 const { nav, inp, sel, paste, click } = require('../actions');
@@ -53,7 +55,7 @@ module.exports = {
 		const navOk = yield nav.go(page, url);
 
 		if (!navOk) {
-			throw nav.errors.Banned;
+			throw new nav.errors.Banned();
 			return;
 		}
 
