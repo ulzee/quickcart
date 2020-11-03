@@ -35,13 +35,30 @@ module.exports = {
 		yield page.type('#username', user, { delay: 10 });
 		yield page.type('#password', pass, { delay: 10 });
 
-		yield page.waitForTimeout(3 * sec);
+		yield page.waitForTimeout(sec);
 
 		yield page.click('#login');
 		yield page.waitForTimeout(5 * sec);
+
+		yield nav.go(page, domain);
+		yield page.waitForTimeout(5 * sec);
+
+		const index = 1;
+		yield click(page, '#storeId-utilityNavBtn');
+		yield page.waitForTimeout(sec);
+		yield page.type('#zipOrCityState', '90024');
+		yield page.waitForTimeout(sec);
+		yield click(page, 'button[data-test="storeLocationSearch-button"]');
+		yield page.waitForTimeout(sec);
+		yield page.evaluate(({ index }) => {
+			const buttons = document.querySelectorAll('button[data-test="storeId-listItem-setStore"]');
+			return buttons[index].click();
+		}, { index });
+
+		yield page.waitForTimeout(5 * sec);
 	},
 	*visit(page, url) {
-		yield nav.go(page, url);
+		yield nav.bench(page, url, waitFor='div[data-test="product-price"]');
 	},
 	*standby(page, url) {
 		// TODO:
@@ -110,8 +127,8 @@ module.exports = {
 		}
 
 		// checkout success
-		log('Done!');
 		console.log(args);
+		log('Done!');
 		yield page.waitForTimeout(10 * sec);
 		yield page.screenshot({path: `logs/ok_${logid}.png`});
 		yield page.waitForTimeout(10 * sec);

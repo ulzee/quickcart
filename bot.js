@@ -13,7 +13,7 @@ const utils = require('./utils');
 let args = yargs(process.argv).argv;
 
 const vendor = stores[args.store];
-const pspec = proxy.list('lumi-rotate.txt');
+const pspec = proxy.list('lumi-excl.txt');
 app.instance();
 args.record = app.record;
 args.account = utils.account(args.store, args.accountid);
