@@ -15,13 +15,13 @@ module.exports = function* (page, {
 	yield click(page, '#accountNav-createAccount');
 
 	yield page.waitForSelector('#username');
-	const fakeName = faker.name.findName().split(' ');
+	// const fakeName = faker.name.findName().split(' ');
 	const [first, last] = name.split(' ');
 
 	yield page.waitForTimeout(sec);
 	yield page.type('#username', user, { delay: 50 });
-	yield page.type('#firstname', fakeName[0], { delay: 50 });
-	yield page.type('#lastname', fakeName[1], { delay: 50 });
+	yield page.type('#firstname', first, { delay: 50 });
+	yield page.type('#lastname', last, { delay: 50 });
 	yield page.type('#phone', phone, { delay: 50 });
 	yield page.type('#password', pass, { delay: 50 });
 	yield page.waitForTimeout(sec);

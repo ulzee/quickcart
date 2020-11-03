@@ -20,7 +20,7 @@ const stores = [
 // accounts per store = min(# phone numbers, # names x # payments)
 
 let raw = fs.readFileSync('./assets/phones.tsv', 'utf8');
-const phones = Papa.parse(raw, { header: true }).data;
+const phones = Papa.parse(raw, { header: true }).data.filter(el => !el.issuer.includes('#'));
 
 raw = fs.readFileSync('./assets/cards.tsv', 'utf8');
 const cards = Papa.parse(raw, { header: true }).data;
@@ -37,6 +37,7 @@ console.log('Creating per store:', numCreate);
 
 let alph = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 let accounts = [];
+let batchid = null;
 stores.forEach(store => {
 	let create_index = 0;
 	names.forEach(name => {
@@ -51,6 +52,7 @@ stores.forEach(store => {
 			const phrase = uuid().split('-')[0];
 			const user = `${tag}.${phrase}@${mail}`;
 			const pass = tag + '!' + uuid().split('-').slice(0, 2).join('');
+			if (!batchid) batchid = phrase;
 
 			const base = {
 				store,
@@ -66,6 +68,8 @@ stores.forEach(store => {
 			const userInfo = withCard;
 
 			userInfo.name = name; // set jigged name
+
+			userInfo.genid = `${create_index}_${batchid}`;
 
 			accounts.push(userInfo);
 
