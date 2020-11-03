@@ -82,6 +82,7 @@ function* browserEntry() {
 	yield vendor.visit(page, args.url);
 
 	// wait until product is ready
+	console.log('[MAIN] Entering standby...');
 	yield vendor.standby(page, args);
 
 	// Checkout logic

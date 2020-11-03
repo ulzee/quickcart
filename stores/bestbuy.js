@@ -10,12 +10,6 @@ const vendor = 'BBUY';
 const log = utils.taglog(vendor);
 global.log = log;
 
-// function waitForShipStatus(page) {
-// 	return new Promise((yes, no) => {
-
-// 	});
-// }
-
 function* waitForSpinner(page) {
 	// wait to see spinner
 	let waiting = true;
@@ -48,6 +42,8 @@ module.exports = {
 			account: { user, pass },
 		} = args;
 
+		if (args.nologin) return;
+
 		yield nav.bench(page, 'https://www.bestbuy.com/identity/global/signin', waitFor='#fld-e');
 
 		yield page.waitForSelector('#fld-e');
@@ -64,11 +60,30 @@ module.exports = {
 		yield nav.go(page, url);
 		yield page.waitForSelector('.priceView-customer-price');
 	},
-	*standby(page, url) {
-		// TODO:
-		// measure reload speed
-		// sync reload with a fixed interval
-		// detect add to cart is available
+	*standby(page, args) {
+		yield page.waitForSelector('.fulfillment-add-to-cart-button');
+
+		let loaded = false;
+		while(!loaded) {
+			const buttonText = yield page.$eval(
+				'.add-to-cart-button',
+				el => el.textContent, { timeout: 10 * sec });
+
+			if (buttonText.includes('Cart')) {
+				loaded = true;
+				break;
+			}
+			else {
+				log('OOS: ' + buttonText);
+			}
+
+			// TODO: wait until next interval (every 30 sec? on the dot :05:30, :06:00, etc...)
+			yield nav.bench(page, args.url, waitFor='.fulfillment-add-to-cart-button');
+		}
+
+		if (args.nologin) {
+			throw new Error('No Login Test');
+		}
 	},
 	*checkout(page, args) {
 		const {
