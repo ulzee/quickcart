@@ -38,28 +38,6 @@ function* waitForSpinner(page) {
 		if (loading == 'hidden') waiting = false;
 		else yield page.waitForTimeout(50);
 	}
-
-	// // wait to see spinner
-	// waiting = true;
-	// while (waiting) {
-	// 	const loading = yield page.evaluate(() => {
-	// 		return getComputedStyle(document.querySelector('.page-spinner'), ':after').visibility;
-	// 	});
-
-	// 	if (loading == 'visible') waiting = false;
-	// 	else yield page.waitForTimeout(50);
-	// }
-
-	// // wait for spinner to go away
-	// waiting = true;
-	// while (waiting) {
-	// 	const loading = yield page.evaluate(() => {
-	// 		return getComputedStyle(document.querySelector('.page-spinner'), ':after').visibility;
-	// 	});
-
-	// 	if (loading == 'hidden') waiting = false;
-	// 	else yield page.waitForTimeout(50);
-	// }
 }
 
 module.exports = {
@@ -70,10 +48,7 @@ module.exports = {
 			account: { user, pass },
 		} = args;
 
-		yield page.waitForSelector('.logo');
-		yield page.waitForTimeout(3 * sec);
-
-		yield nav.go(page, 'https://www.bestbuy.com/identity/global/signin');
+		yield nav.bench(page, 'https://www.bestbuy.com/identity/global/signin', waitFor='#fld-e');
 
 		yield page.waitForSelector('#fld-e');
 		yield page.type('#fld-e', user, { delay: 50 });
@@ -83,7 +58,7 @@ module.exports = {
 
 		yield click(page, '.cia-form__controls__submit');
 
-		yield page.waitForSelector('.widget-primary-message');
+		yield page.waitForSelector('#gh-search-input');
 	},
 	*visit(page, url) {
 		yield nav.go(page, url);
@@ -114,20 +89,16 @@ module.exports = {
 		yield click(page, '.add-to-cart-button');
 
 		yield page.waitForSelector('.go-to-cart-button');
-		yield page.waitForTimeout(100);
-		yield click(page, '.go-to-cart-button');
+		yield nav.go(page, 'https://www.bestbuy.com/checkout/r/fast-track');
 
-		yield page.waitForSelector('.change-store-link');
-		yield page.waitForSelector('.price-summary__total-value');
-		yield page.waitForSelector('.cart-item__image');
-		yield page.waitForTimeout(100);
-		yield click(page, '.checkout-buttons__checkout .btn-primary');
+		// yield page.waitForSelector('.change-store-link');
+		// yield page.waitForSelector('.price-summary__total-value');
+		// yield page.waitForSelector('.cart-item__image');
+		// yield page.waitForTimeout(100);
+		// yield click(page, '.checkout-buttons__checkout .btn-primary');
 
 		yield page.waitForSelector('.button__fast-track');
-
-
 		yield waitForSpinner(page);
-
 
 		// CVV input may be asked
 		const cardInput = yield page.evaluate(() =>
@@ -138,13 +109,9 @@ module.exports = {
 			yield page.type('#credit-card-cvv', security);
 		}
 
-		// submit order
-		yield click(page, '.button__fast-track')
-
-		if (args.debug) {
-			log('DEBUG (stopping before checkout)')
-			yield page.waitForTimeout(100 * 1000);
-			return;
+		if (args.debug == false || args.debug == undefined) {
+			// submit order
+			yield click(page, '.button__fast-track')
 		}
 
 		yield page.waitForTimeout(10 * sec);

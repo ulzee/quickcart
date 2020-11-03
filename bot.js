@@ -12,8 +12,14 @@ const fs = require('fs');
 const utils = require('./utils');
 let args = yargs(process.argv).argv;
 
+
+const proxyChoice = {
+	bestbuy: 'lumi-excl-us.txt',
+	target: 'lumi-excl-us-ca.txt',
+}
+
 const vendor = stores[args.store];
-const pspec = proxy.list('lumi-excl.txt');
+const pspec = proxy.list(proxyChoice[args.store]);
 app.instance();
 args.record = app.record;
 args.account = utils.account(args.store, args.accountid);
