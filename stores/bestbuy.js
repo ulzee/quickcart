@@ -78,6 +78,7 @@ module.exports = {
 			}
 
 			// TODO: wait until next interval (every 30 sec? on the dot :05:30, :06:00, etc...)
+			yield page.waitForTimeout(15 * sec);
 			yield nav.bench(page, args.url, waitFor='.fulfillment-add-to-cart-button');
 		}
 
