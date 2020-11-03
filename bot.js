@@ -76,7 +76,7 @@ function* browserEntry() {
 	yield vendor.visit(page, args.url);
 
 	// wait until product is ready
-	// TODO: logic differs for each store
+	yield vendor.standby(page, args);
 
 	// Checkout logic
 	yield vendor.checkout(page, args);

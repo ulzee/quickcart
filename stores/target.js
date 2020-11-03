@@ -16,6 +16,8 @@ module.exports = {
 			account: { user, pass },
 		} = args;
 
+		if (args.nologin) return;
+
 		// give up on this IP if pages too slow
 		yield page.waitForTimeout(5 * sec);
 		yield nav.bench(page, args.url, waitFor='div[data-test="product-price"]');
@@ -60,11 +62,37 @@ module.exports = {
 	*visit(page, url) {
 		yield nav.bench(page, url, waitFor='div[data-test="product-price"]');
 	},
-	*standby(page, url) {
-		// TODO:
-		// measure reload speed
-		// sync reload with a fixed interval
-		// detect add to cart is available
+	*standby(page, args) {
+		yield page.waitForSelector('div[data-test="product-price"]');
+
+		let loaded = false;
+		while(!loaded) {
+			// yield page.waitForSelector('div[data-test="storeFulfillmentAggregator"]');
+			try {
+				// there is a 10second wait to check if pickup becomes avail
+				yield page.waitForSelector('button[data-test="orderPickupButton"]', { timeout: 10 * sec });
+				loaded = true;
+			}
+			catch(e) {
+				const outOfStockText = yield page.evaluate(() => {
+					const cantBuy = document.querySelector('div[data-test="storeBlockNonBuyableMessages"]');
+					if (cantBuy) {
+						return cantBuy.textContent;
+					}
+					return null;
+				});
+				if (outOfStockText) {
+					log('OOS:', outOfStockText);
+				}
+
+				// TODO: wait until next interval (every 30 sec? on the dot :05:30, :06:00, etc...)
+				yield nav.go(page, args.url);
+			}
+		}
+
+		if (args.nologin) {
+			throw new Error('No Login Test');
+		}
 	},
 	*checkout(page, args) {
 		let {
