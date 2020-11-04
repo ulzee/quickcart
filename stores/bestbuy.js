@@ -34,6 +34,47 @@ function* waitForSpinner(page) {
 	}
 }
 
+function* setPickupStore(page, args) {
+
+	const [accountIndex, batchID] = args.account.genid.split('_');
+	const zipCode = batchID;
+
+	yield nav.go(page, 'https://www.bestbuy.com/site/store-locator/');
+
+	// choose a random location to reset
+	yield page.waitForSelector('.zip-code-input');
+	try {
+		yield page.waitForSelector('.MicrosoftMap');
+	}
+	catch(e) {
+		throw new nav.errors.Slow();
+	}
+	log('Map ready');
+	yield page.waitForTimeout(5 * sec);
+	yield page.type('.zip-code-input', '61801', { delay: 10 });
+	yield page.click('.location-zip-code-form-content button');
+	yield page.waitForSelector('.shop-location-map');
+	yield page.waitForTimeout(5 * sec);
+
+	yield page.evaluate(() => {
+		const buttons = document.querySelectorAll('.make-this-your-store');
+		return buttons[1].click();
+	});
+	yield page.waitForTimeout(5 * sec); // wait for change to apply
+
+	// choose near target zip code
+	yield paste(page, '.zip-code-input', '');
+	yield page.type('.zip-code-input', zipCode, { delay: 10 });
+	yield page.click('.location-zip-code-form-content button');
+	yield page.waitForTimeout(5 * sec);
+
+	yield page.evaluate(({ index }) => {
+		const myStore = document.querySelectorAll('.make-this-your-store')[index];
+		return myStore.click();
+	}, { index: parseInt(accountIndex) });
+	yield page.waitForTimeout(5 * sec); // wait for change to apply
+}
+
 module.exports = {
 	vendor,
 	home: domain,
@@ -55,6 +96,8 @@ module.exports = {
 		yield click(page, '.cia-form__controls__submit');
 
 		yield page.waitForSelector('#gh-search-input');
+
+		yield setPickupStore(page, args);
 	},
 	*visit(page, url) {
 		yield nav.go(page, url);
@@ -78,7 +121,9 @@ module.exports = {
 			}
 
 			// TODO: wait until next interval (every 30 sec? on the dot :05:30, :06:00, etc...)
-			yield page.waitForTimeout(15 * sec);
+			const waitTime = utils.eta();
+			log('Waiting: ' + waitTime.toFixed(2));
+			yield page.waitForTimeout(waitTime * sec);
 			yield nav.bench(page, args.url, waitFor='.fulfillment-add-to-cart-button');
 		}
 

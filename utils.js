@@ -104,5 +104,19 @@ module.exports = {
 		}
 		return num;
 	},
-	// monthDigit()
+	eta(inSeconds=30) {
+		// interval in seconds
+
+		const current = new Date();
+		console.log(current);
+		const sec = current.getTime() / 1000;
+		const nextInterval = Math.ceil(sec / inSeconds) * inSeconds;
+
+		let remainder = nextInterval - sec;
+		if (remainder < inSeconds) {
+			remainder += inSeconds;
+		}
+
+		return remainder;
+	},
 }

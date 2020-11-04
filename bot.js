@@ -14,7 +14,7 @@ let args = yargs(process.argv).argv;
 
 
 const proxyChoice = {
-	bestbuy: 'lumi-excl-us.txt',
+	bestbuy: 'lumi-rotate.txt',
 	target: 'lumi-excl-us-ca.txt',
 }
 
@@ -55,6 +55,7 @@ function* browserEntry() {
 			password: args.proxy.pass,
 		});
 	}
+	yield page.goto('about:blank');
 
 	// add listeners etc...
 	pagesetup(page, args);
