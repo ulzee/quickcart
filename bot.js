@@ -15,7 +15,7 @@ let args = yargs(process.argv).argv;
 
 const proxyChoice = {
 	bestbuy: 'lumi-rotate.txt',
-	target: 'lumi-excl-us-ca.txt',
+	target: 'lumi-excl.txt',
 }
 
 const vendor = stores[args.store];

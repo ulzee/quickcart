@@ -45,6 +45,7 @@ module.exports = {
 		yield nav.go(page, domain);
 		yield page.waitForTimeout(5 * sec);
 
+		// set Pickup store
 		const index = 1;
 		yield click(page, '#storeId-utilityNavBtn');
 		yield page.waitForTimeout(sec);
@@ -86,6 +87,9 @@ module.exports = {
 				}
 
 				// TODO: wait until next interval (every 30 sec? on the dot :05:30, :06:00, etc...)
+				const waitTime = utils.eta();
+				log('Waiting: ' + waitTime.toFixed(2));
+				yield page.waitForTimeout(waitTime * sec);
 				yield nav.go(page, args.url);
 			}
 		}

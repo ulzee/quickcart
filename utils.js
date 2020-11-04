@@ -113,6 +113,8 @@ module.exports = {
 		const nextInterval = Math.ceil(sec / inSeconds) * inSeconds;
 
 		let remainder = nextInterval - sec;
+
+		// if scheduled too soon, wait until next cycle
 		if (remainder < inSeconds) {
 			remainder += inSeconds;
 		}
