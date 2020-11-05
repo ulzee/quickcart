@@ -75,6 +75,26 @@ function* setPickupStore(page, args) {
 	yield page.waitForTimeout(5 * sec); // wait for change to apply
 }
 
+function* shipInstead(page) {
+	try {
+		yield page.evaluate('.ispu-card__switch', { timeout: 50 });
+
+		let switchText = yield page.$eval('.ispu-card__switch', el => el.textContent);
+
+		while (switchText.includes('Ship')) {
+
+			yield page.click('.ispu-card__switch');
+			yield waitForSpinner(page);
+
+			switchText = yield page.$eval('.ispu-card__switch', el => el.textContent);
+		}
+	}
+	catch (e) {
+		log('Switch text not found...');
+		return;
+	}
+}
+
 module.exports = {
 	vendor,
 	home: domain,
@@ -160,6 +180,8 @@ module.exports = {
 
 		yield page.waitForSelector('.button__fast-track');
 		yield waitForSpinner(page);
+
+		// yield shipInstead(page);
 
 		// CVV input may be asked
 		const cardInput = yield page.evaluate(() =>
