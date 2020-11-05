@@ -62,7 +62,7 @@ module.exports = {
 		Blacklisted: BlacklistedError,
 	},
 	go,
-	bench: function*(page, url, waitFor, allowedLoadTime=7) {
+	bench: function*(page, url, waitFor, allowedLoadTime=7, retry=false) {
 		if (!waitFor) {
 			throw new Error('Please choose a selector.');
 		}
@@ -70,12 +70,21 @@ module.exports = {
 		// Page load time is not enough, we should also measure load of active els
 		const timeUntilReady = new Date();
 		yield go(page, url);
-		try {
-			yield page.waitForSelector(waitFor, { timeout: allowedLoadTime * sec });
-		}
-		catch(e) {
-			// selector was not ready at this time
-			throw new SlowError();
+		while (true) {
+			try {
+				yield page.waitForSelector(waitFor, { timeout: allowedLoadTime * sec });
+				break;
+			}
+			catch(e) {
+				if (retry) {
+					console.log('[NAV] Retrying...');
+					yield go(page, url);
+					continue;
+				}
+
+				// selector was not ready at this time
+				throw new SlowError();
+			}
 		}
 
 		const elapsed = (new Date() - timeUntilReady) / sec;

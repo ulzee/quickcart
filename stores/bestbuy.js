@@ -144,7 +144,7 @@ module.exports = {
 			const waitTime = utils.eta();
 			log('Waiting: ' + waitTime.toFixed(2));
 			yield page.waitForTimeout(waitTime * sec);
-			yield nav.bench(page, args.url, waitFor='.fulfillment-add-to-cart-button');
+			yield nav.bench(page, args.url, waitFor='.fulfillment-add-to-cart-button', retry=true);
 		}
 
 		if (args.nologin) {
@@ -165,20 +165,19 @@ module.exports = {
 		yield page.waitForSelector('.add-to-cart-button');
 		yield page.waitForSelector('.fulfillment-fulfillment-summary strong');
 
-		// yield waitForShipStatus(page);
-
 		yield click(page, '.add-to-cart-button');
 
 		yield page.waitForSelector('.go-to-cart-button');
 		yield nav.go(page, 'https://www.bestbuy.com/checkout/r/fast-track');
 
-		// yield page.waitForSelector('.change-store-link');
-		// yield page.waitForSelector('.price-summary__total-value');
-		// yield page.waitForSelector('.cart-item__image');
-		// yield page.waitForTimeout(100);
-		// yield click(page, '.checkout-buttons__checkout .btn-primary');
+		try {
+			// If this page doesn't load, the IP is blacklsited
+			yield page.waitForSelector('.button__fast-track');
+		}
+		catch(e) {
+			throw nav.errors.Banned();
+		}
 
-		yield page.waitForSelector('.button__fast-track');
 		yield waitForSpinner(page);
 
 		// yield shipInstead(page);

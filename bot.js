@@ -126,6 +126,10 @@ function main() {
 		}
 		else {
 			console.log(e);
+
+			const logFile = `logs/${args.record.spawnid}.log`;
+			fs.appendFileSync(logFile, e, 'utf8');
+
 			if (browser) {
 				page.screenshot({path: `logs/er_${args.logid}.png`})
 				.then(() => browser.close())
