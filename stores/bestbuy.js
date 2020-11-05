@@ -68,6 +68,7 @@ function* setPickupStore(page, args) {
 	yield page.click('.location-zip-code-form-content button');
 	yield page.waitForTimeout(5 * sec);
 
+	yield page.waitForSelector('.make-this-your-store');
 	yield page.evaluate(({ index }) => {
 		const myStore = document.querySelectorAll('.make-this-your-store')[index];
 		return myStore.click();
@@ -145,10 +146,6 @@ module.exports = {
 			log('Waiting: ' + waitTime.toFixed(2));
 			yield page.waitForTimeout(waitTime * sec);
 			yield nav.bench(page, args.url, waitFor='.fulfillment-add-to-cart-button', retry=true);
-		}
-
-		if (args.nologin) {
-			throw new Error('No Login Test');
 		}
 	},
 	*checkout(page, args) {

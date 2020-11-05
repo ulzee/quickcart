@@ -35,6 +35,8 @@ let browser = null;
 let page = null;
 function* browserEntry() {
 
+	// const headlessMode = args.debug == undefined || !args.debug ? true : false;
+	// console.log('[MAIN] Headless:', headlessMode)
 	browser = yield puppeteer.launch({
 		headless: false,
 		defaultViewport: {
@@ -49,6 +51,7 @@ function* browserEntry() {
 	});
 
 	page = yield browser.newPage();
+	console.log(yield browser.userAgent());
 	if (args.proxy) {
 		yield page.authenticate({
 			username: args.proxy.name,

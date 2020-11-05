@@ -21,7 +21,7 @@ class BlacklistedError extends Error {
 	}
 }
 
-function* go(page, url) {
+function* go(page, url, timeout=5) {
 	let t0 = new Date();
 	let navOk = true;
 
@@ -30,6 +30,7 @@ function* go(page, url) {
 	try {
 		res = yield page.goto(url, {
 			waitUntil: 'domcontentloaded',
+			timeout: timeout * sec,
 		});
 	}
 	catch (e) {
@@ -62,14 +63,18 @@ module.exports = {
 		Blacklisted: BlacklistedError,
 	},
 	go,
-	bench: function*(page, url, waitFor, allowedLoadTime=7, retry=false) {
+	bench: function*(page, url, waitFor, retry=false, allowedLoadTime=10) {
 		if (!waitFor) {
 			throw new Error('Please choose a selector.');
 		}
 
 		// Page load time is not enough, we should also measure load of active els
+
 		const timeUntilReady = new Date();
-		yield go(page, url);
+		const longWait = 60;
+		const shortWait = 5;
+
+		yield go(page, url, timeout=shortWait);
 		while (true) {
 			try {
 				yield page.waitForSelector(waitFor, { timeout: allowedLoadTime * sec });
@@ -78,12 +83,14 @@ module.exports = {
 			catch(e) {
 				if (retry) {
 					console.log('[NAV] Retrying...');
-					yield go(page, url);
-					continue;
+					yield go(page, url, timeout=longWait);
 				}
-
-				// selector was not ready at this time
-				throw new SlowError();
+				else {
+					// Case: benchmark failed
+					// selector was not ready at this time
+					console.log('[NAV] Page is too slow!');
+					throw new SlowError();
+				}
 			}
 		}
 

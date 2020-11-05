@@ -1,9 +1,12 @@
 
 num=$1
 
+# bbuy="https://www.bestbuy.com/site/sony-playstation-5-console/6426149.p"
+bbuy="https://www.bestbuy.com/site/sony-playstation-5-dualsense-wireless-controller/6430163.p"
+
 for index in $(seq 0 $num)
 do
-	screen -dm bash -c "./scripts/bestbuy.sh $index \"https://www.bestbuy.com/site/sony-playstation-5-console/6426149.p\""
+	screen -dm bash -c "./scripts/bestbuy.sh $index \"$bbuy\""
 done
 
 # for index in $(seq 0 $num)
