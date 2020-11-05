@@ -137,7 +137,7 @@ module.exports = {
 			account: {
 				security,
 			},
-			record: { logid },
+			logid,
 		} = args;
 
 		log(url);
