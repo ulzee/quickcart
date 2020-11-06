@@ -13,7 +13,8 @@ module.exports = (page, args) => {
 	page.on('request', res => {
 		const url = res.url();
 		const assets = ['.jpg', '.png', '.gif', '.jpeg', '.svg', '/i/', 'image', 'webp'];
-		if (assets.some(one => url.includes(one))) {
+		const path = url.split('//')[1].split('/').slice(1).join('/');
+		if (assets.some(one => path.includes(one))) {
 			res.abort();
 			return;
 		}
