@@ -8,11 +8,11 @@ const { cachedDataVersionTag } = require('v8');
 const names = ['Ulzee An'];
 const mail = 'limecart.me';
 const stores = [
-	'target',
+	// 'target',
 	// 'gamestop',
 	// 'sears',
 	// 'kohls',
-	// 'walmart',
+	'walmart'
 	// 'bestbuy'
 ];
 
