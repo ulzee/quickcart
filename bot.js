@@ -74,7 +74,7 @@ function* browserEntry() {
 			'--disable-dev-shm-usage',
 			args.proxy ? `--proxy-server=${args.proxy.url}` : '',
 			`--window-size=${monitor.w},${monitor.h}`,
-			`--window-position=${monitor.w*args.accountid},${monitor.h*monitor.row[args.store]}`,
+			`--window-position=${monitor.w*args.accountid},${monitor.h/2*monitor.row[args.store]}`,
 		],
 	});
 
