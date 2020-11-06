@@ -61,5 +61,5 @@ module.exports = function* (page, {
 
 	yield page.click('.save-btn');
 
-	yield page.waitForTimeout(30 * sec);
+	yield page.waitForTimeout(10 * sec);
 }
