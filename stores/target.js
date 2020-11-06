@@ -46,17 +46,19 @@ module.exports = {
 		yield page.waitForTimeout(5 * sec);
 
 		// set Pickup store
+		const [accountIndex, batchID] = args.account.genid.split('_');
+		const zipCode = batchID;
 		const index = 1;
 		yield click(page, '#storeId-utilityNavBtn');
 		yield page.waitForTimeout(sec);
-		yield page.type('#zipOrCityState', '90024');
+		yield page.type('#zipOrCityState', zipCode);
 		yield page.waitForTimeout(sec);
 		yield click(page, 'button[data-test="storeLocationSearch-button"]');
 		yield page.waitForTimeout(sec);
 		yield page.evaluate(({ index }) => {
 			const buttons = document.querySelectorAll('button[data-test="storeId-listItem-setStore"]');
 			return buttons[index].click();
-		}, { index });
+		}, { index: parseInt(accountIndex) });
 
 		yield page.waitForTimeout(5 * sec);
 	},
@@ -71,7 +73,7 @@ module.exports = {
 			// yield page.waitForSelector('div[data-test="storeFulfillmentAggregator"]');
 			try {
 				// there is a 10second wait to check if pickup becomes avail
-				yield page.waitForSelector('button[data-test="orderPickupButton"]', { timeout: 10 * sec });
+				yield page.waitForSelector('button[class*="styles__StyledButton"]', { timeout: 10 * sec });
 				loaded = true;
 			}
 			catch(e) {
@@ -90,7 +92,7 @@ module.exports = {
 				const waitTime = utils.eta();
 				log('Waiting: ' + waitTime.toFixed(2));
 				yield page.waitForTimeout(waitTime * sec);
-				yield nav.go(page, args.url);
+				yield nav.bench(page, args.url, waitFor='div[data-test="product-price"]', retry=true);
 			}
 		}
 
@@ -110,29 +112,26 @@ module.exports = {
 		log(url);
 
 
-
-		// run out of stock check
-		let oos = false;
-		page.waitForSelector('div[data-test="outOfStockMessage"]')
-		.then(() => {
-			oos = true;
-			log('OOS Message Detected...');
-		})
-		.catch(e => e);
-
 		// click the first available atc button
-		try {
-			yield page.waitForSelector('button[data-test="orderPickupButton"]');
-		}
-		catch(e) {
-			if (oos) {
-				throw new Error('OUT OF STOCK!');
-			}
-			throw new Error('Pickup not available!');
-		}
-		yield page.click('button[data-test="orderPickupButton"]');
+		// try {
+		// 	yield page.waitForSelector('button[class*="styles__StyledButton"]');
+		// }
+		// catch(e) {
+		// 	if (oos) {
+		// 		throw new Error('OUT OF STOCK!');
+		// 	}
+		// 	throw new Error('Pickup not available!');
+		// }
 
-		// yield page.waitForSelector(30 * 60 * sec);
+		// Choose the first available purchase option
+		yield page.$$eval('button[class*="styles__StyledButton"]', ls => {
+			const validButtons = ls.filter(el =>
+				el.attributes['data-test'].value != 'scheduledDeliveryButton');
+
+			if (validButtons.length) {
+				validButtons[0].click();
+			}
+		});
 
 		// wait for confirmation prompt then go to cart
 		yield page.waitForSelector('button[aria-label="close"]');
