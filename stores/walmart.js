@@ -32,6 +32,16 @@ module.exports = {
 
 		yield page.click('button[data-automation-id="signin-submit-btn"]');
 		yield page.waitForTimeout(5 * sec);
+
+		//empty cart
+		yield nav.go(page, 'https://www.walmart.com/cart');
+		yield page.waitForSelector('.has-items');
+		yield page.waitForTimeout(5 * sec);
+
+		while(yield page.$$eval('button[data-automation-id="cart-item-remove"]', ls => ls.length)) {
+			yield page.$eval('button[data-automation-id="cart-item-remove"]', el => el.click());
+			yield page.waitForTimeout(2 * sec);
+		}
 	},
 	*visit(page, url) {
 		yield nav.bench(page, url, waitFor='.price-characteristic');
@@ -105,7 +115,6 @@ module.exports = {
 		}
 
 		// checkout success
-		console.log(args);
 		log('Done!');
 		yield page.waitForTimeout(10 * sec);
 		yield page.screenshot({path: `logs/ok_${logid}.png`});

@@ -185,7 +185,6 @@ module.exports = {
 		}
 
 		// checkout success
-		console.log(args);
 		log('Done!');
 		yield page.waitForTimeout(10 * sec);
 		yield page.screenshot({path: `logs/ok_${logid}.png`});
