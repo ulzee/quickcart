@@ -81,12 +81,10 @@ module.exports = {
 		// 				break;
 		// 			}
 		// 			catch(e) {
-		// 				// console.log
 		// 			}
 		// 		}
 		// 	}
 		// }
-		// co(acceptAddress).then(console.log).catch(console.log);
 
 		// Set billing same as shipping
 		yield page.waitForSelector('.use-as-billing-block');
