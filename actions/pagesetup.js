@@ -2,6 +2,19 @@
 const fs = require('fs');
 const nav = require('./nav');
 
+function getPath(url) {
+	const content = url.split('//')[1];
+
+	if (content && content.includes('/')) {
+		const path = content.split('/').slice(1).join('/');
+		if (path) {
+			return path;
+		}
+	}
+
+	return null;
+}
+
 module.exports = (page, args) => {
 
 	page.setDefaultNavigationTimeout(5 * 1000)
@@ -13,8 +26,8 @@ module.exports = (page, args) => {
 	page.on('request', res => {
 		const url = res.url();
 		const assets = ['.jpg', '.png', '.gif', '.jpeg', '.svg', '/i/', 'image', 'webp'];
-		const path = url.split('//')[1].split('/').slice(1).join('/');
-		if (assets.some(one => path.includes(one))) {
+		const path = getPath(url);
+		if (path && assets.some(one => path.includes(one))) {
 			res.abort();
 			return;
 		}
@@ -46,5 +59,4 @@ module.exports = (page, args) => {
 			}
 		}
 	});
-
 }
