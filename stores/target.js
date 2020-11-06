@@ -61,6 +61,33 @@ module.exports = {
 		}, { index: parseInt(accountIndex) });
 
 		yield page.waitForTimeout(5 * sec);
+
+
+
+		// empty cart
+		yield nav.go(page, 'https://www.target.com/co-cart');
+		yield page.waitForSelector('#search');
+		yield page.waitForTimeout(3 * sec);
+		try {
+			yield page.waitForSelector('div[data-test="boxEmptyMsg"]');
+		}
+		catch (e) {
+			while(true) {
+				const remaining = yield $$eval('button[data-test="cartItem-deleteBtn"]', ls => {
+					if (!ls.length) return 0;
+
+					ls[0].click();
+
+					return ls.length;
+				});
+
+				yield page.waitForTimeout(3 * sec);
+
+				if (!remaining) {
+					break;
+				}
+			}
+		}
 	},
 	*visit(page, url) {
 		yield nav.bench(page, url, waitFor='div[data-test="product-price"]');
