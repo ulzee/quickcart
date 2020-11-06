@@ -3,7 +3,6 @@ const faker = require('faker');
 const { nav, click, paste, sel } = require('../actions');
 
 const sec = 1000;
-global.log = console.log;
 
 module.exports = function* (page, {
 	name, phone, user, pass, city, zip, address, address2,

@@ -2,8 +2,6 @@
 const faker = require('faker');
 const { nav, click, paste, sel } = require('../actions');
 
-global.log = console.log;
-
 module.exports = function* (page, {
 	name, phone, user, pass, city, zip, address, address2,
 	number, security, month, year, profile_index,
