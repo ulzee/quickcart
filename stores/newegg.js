@@ -106,8 +106,8 @@ module.exports = {
 		// NOTE: shipping methods may need to be reselected
 		// yield click(page, '.checkout-step-action-done');
 		// yield click(page, '.checkout-step-action-done');
-		yield page.waitForSelector('.form-text.mask-cvv-4');
-		yield page.type('.form-text.mask-cvv-4', security);
+		yield page.waitForSelector('input[placeholder="CVV2"]');
+		yield page.type('input[placeholder="CVV2"]', security, { delay: 10 });
 
 		if (args.debug == undefined || args.debug == false) {
 			while (true) {
