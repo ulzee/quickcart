@@ -4,19 +4,19 @@ const { sec } = require('../utils');
 banned = false;
 
 class BannedError extends Error {
-	constructor(message) {
+	constructor(message='Banned') {
 		super(message);
 	}
 }
 
 class SlowError extends Error {
-	constructor(message) {
+	constructor(message='Too Slow') {
 		super(message);
 	}
 }
 
 class BlacklistedError extends Error {
-	constructor(message) {
+	constructor(message='Blacklisted IP') {
 		super(message);
 	}
 }
