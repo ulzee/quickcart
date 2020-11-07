@@ -30,11 +30,13 @@ const monitor = {
 };
 
 const vendor = stores[args.store];
-const pspec = proxy.list(proxyChoice[args.store]);
+const proxyList = proxyChoice[args.store];
+const pspec = proxyList ? proxy.list(proxyList) : null;
+args.proxy = pspec;
+
 app.instance();
 args.record = app.record;
 args.account = utils.account(args.store, args.accountid);
-args.proxy = pspec;
 args.logid = `${args.store}_${args.record.spawnid}_${args.accountid}`;
 console.log('[MAIN] ID:', args.record.spawnid);
 console.log(args.account);
@@ -106,8 +108,8 @@ function* browserEntry() {
 	}
 
 	// homepage
-	STATE('homepage');
-	yield actions.nav.go(page, vendor.home);
+	// STATE('homepage');
+	// yield actions.nav.go(page, vendor.home);
 
 	console.log('[MAIN] Nav...');
 
@@ -153,6 +155,8 @@ function main() {
 		}
 
 		if (retry) {
+			return;
+
 			STATE('RETRYING: ' + e);
 			console.log(e);
 			console.log('[MAIN] RETRYING');
