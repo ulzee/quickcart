@@ -3,7 +3,10 @@
 var io = require('@pm2/io')
 const nav = require('./actions/nav');
 const co = require('co');
-const puppeteer = require('puppeteer');
+// const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+puppeteer.use(StealthPlugin());
 const stores = require('./stores');
 const actions = require('./actions');
 const { proxy, sec } = require('./utils');
@@ -18,6 +21,7 @@ const proxyChoice = {
 	bestbuy: 'lumi-excl.txt',
 	target: 'lumi-excl.txt',
 	walmart: 'lumi-excl.txt',
+	// adorama: 'lumi-excl.txt',
 }
 
 const monitor = {
@@ -79,10 +83,11 @@ function* browserEntry() {
 			`--window-position=${monitor.w*args.accountid},${monitor.h/2*monitor.row[args.store]}`,
 		],
 	});
+	const context = yield browser.createIncognitoBrowserContext();
 
 	STATE('opening page');
-	page = yield browser.newPage();
-	console.log(yield browser.userAgent());
+	page = yield context.newPage();
+	// page = yield browser.newPage();
 	if (args.proxy) {
 		yield page.authenticate({
 			username: args.proxy.name,
@@ -90,6 +95,8 @@ function* browserEntry() {
 		});
 	}
 	yield page.goto('about:blank');
+	yield page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.183 Safari/537.36');
+	console.log(yield browser.userAgent());
 
 	// add listeners etc...
 	pagesetup(page, args);
