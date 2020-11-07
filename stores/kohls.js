@@ -59,7 +59,7 @@ module.exports = {
 				log('Waiting: ' + waitTime.toFixed(2));
 				yield page.waitForTimeout(waitTime * sec);
 
-				yield nav.bench(page, args.url, waitFor='#addtobagID', retry=true);
+				yield nav.bench(page, args.url, waitFor='.product-title', retry=true);
 			}
 		}
 	},
