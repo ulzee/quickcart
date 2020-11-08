@@ -35,10 +35,14 @@ const proxyChoice = {
 
 const monitor = {
 	w: 500, h: 600 ,
+	wd: 400,
 	row: {
 		bestbuy: 0,
 		target: 1,
 		walmart: 2,
+		newegg: 3,
+		adorama: 4,
+		kohls: 5,
 	}
 };
 
@@ -87,16 +91,17 @@ function* browserEntry() {
 		args: [
 			'--no-sandbox',
 			'--disable-dev-shm-usage',
-			'--incognito',
+			// '--incognito',
 			args.proxy ? `--proxy-server=${args.proxy.url}` : '',
 			`--window-size=${monitor.w},${monitor.h}`,
-			`--window-position=${monitor.w*args.accountid},${monitor.h/2*monitor.row[args.store]}`,
+			`--window-position=${monitor.wd*monitor.row[args.store]},${0}`,
 		],
 	});
+
 	// const context = yield browser.createIncognitoBrowserContext();
+	// page = yield context.newPage();
 
 	STATE('opening page');
-	// page = yield context.newPage();
 	page = yield browser.newPage();
 	if (args.proxy) {
 		yield page.authenticate({
