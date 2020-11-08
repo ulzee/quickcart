@@ -53,7 +53,7 @@ module.exports = {
 		while (true) {
 
 			try {
-				yield page.waitForSelector('#addtobagID');
+				yield page.waitForSelector('#shipment-selection');
 				break;
 			}
 			catch (e) {
@@ -81,12 +81,16 @@ module.exports = {
 
 		log(url);
 
+		yield page.waitForSelector('#shipment-selection');
+		yield page.waitForSelector('.shipStoreOnlyShip');
 		yield click(page, '#addtobagID');
 
 		// wait for confirmation prompt then go to cart
 		yield page.waitForSelector('.kas-newpb-viewbag-link_ghr'); // TODO: wait for checkout to be enabled
 		yield nav.go(page, 'https://www.kohls.com/checkout/v2/checkout.jsp');
 
+		yield page.waitForSelector('.bossSelectShipMethod');
+		yield page.waitForSelector('.preferedStore');
 		yield click(page, '.button_continueToPayment');
 
 		yield page.waitForSelector('.keyPlaceOrder');
