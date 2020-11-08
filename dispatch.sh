@@ -2,29 +2,33 @@
 num=$1
 debug="true"
 
-# bbuy="https://www.bestbuy.com/site/sony-playstation-5-console/6426149.p"
-bbuy="https://www.bestbuy.com/site/sony-playstation-5-dualsense-wireless-controller/6430163.p"
+stores="bestbuy target walmart newegg adorama kohls"
 
-# target="https://www.target.com/p/playstation-5-console/-/A-81114595"
-target="https://www.target.com/p/dualsense-wireless-controller-for-playstation-5/-/A-81114477"
+if [[ $debug -eq "true" ]]
+then
+	bestbuy="https://www.bestbuy.com/site/apple-tv-4k-32gb-black/5901530.p"
+	target="https://www.target.com/p/apple-airpods-with-charging-case/-/A-54191097#lnk=sametab"
+	walmart="https://www.walmart.com/ip/Apple-AirPods-with-Charging-Case-Latest-Model/604342441"
+	newegg="https://www.newegg.com/white-phanteks-eclipse-p360a-atx-mid-tower/p/N82E16811854104"
+	adorama="https://www.adorama.com/ctc1000p1ssd.html"
+	kohls="https://www.kohls.com/product/prd-3957140/microsoft-xbox-one-wireless-controller-red.jsp"
+fi
 
-walmart="https://www.walmart.com/ip/Apple-AirPods-with-Charging-Case-Latest-Model/604342441"
-
-# for index in $(seq 0 $num)
-# do
-# 	screen -dm bash -c "./scripts/bestbuy.sh $index \"$bbuy\""
-# done
-
-# for index in $(seq 0 $num)
-# do
-# 	screen -dm bash -c "./scripts/target.sh $index \"$target\" $debug"
-# done
-
-for index in $(seq 0 $num)
+for store in $stores
 do
-	echo "walmart.$index"
-	pm2 start bot.js --no-autorestart --name="walmart.$index" -- \
-		--store=walmart --accountid=$index \
-		--url=$walmart \
-		--debug=$debug
+	for index in $(seq 0 $num)
+	do
+		tag="$store.$index"
+		url_var=$store
+		url=${!url_var}
+		echo $tag
+		echo $url
+
+		pm2 start bot.js --no-autorestart --name=$tag -- \
+			--store=$store --accountid=$index \
+			--url=$url \
+			--debug=$debug
+	done
 done
+
+
