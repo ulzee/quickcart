@@ -34,7 +34,7 @@ const proxyChoice = {
 }
 
 const monitor = {
-	w: 500, h: 600 ,
+	w: 1024, h: 800 ,
 	wd: 400,
 	row: {
 		bestbuy: 0,
@@ -82,6 +82,8 @@ function* browserEntry() {
 	// const headlessMode = args.debug == undefined || !args.debug ? true : false;
 	// console.log('[MAIN] Headless:', headlessMode)
 	STATE('launching browser');
+	const dx = monitor.wd*monitor.row[args.store];
+	const dy = monitor.hd*parseInt(args.accountid) + 20*monitor.row[args.store];
 	browser = yield puppeteer.launch({
 		headless: false,
 		defaultViewport: {
@@ -94,7 +96,7 @@ function* browserEntry() {
 			// '--incognito',
 			args.proxy ? `--proxy-server=${args.proxy.url}` : '',
 			`--window-size=${monitor.w},${monitor.h}`,
-			`--window-position=${monitor.wd*monitor.row[args.store]},${0}`,
+			`--window-position=${dx},${dy}`,
 		],
 	});
 
@@ -125,7 +127,7 @@ function* browserEntry() {
 	console.log('[MY IP]:', myip);
 
 
-	if (utils.blacklisted({ ip: myip })) {
+	if (utils.blacklisted({ ip: myip, store: args.store })) {
 		throw new actions.nav.errors.Blacklisted();
 	}
 
@@ -173,12 +175,10 @@ function main() {
 			|| e instanceof nav.errors.Slow;
 
 		if (blacklist) {
-			utils.blacklisted({ add: args.myip });
+			utils.blacklisted({ add: args.myip, store: args.store });
 		}
 
 		if (retry) {
-			return;
-
 			STATE('RETRYING: ' + e);
 			console.log(e);
 			console.log('[MAIN] RETRYING');

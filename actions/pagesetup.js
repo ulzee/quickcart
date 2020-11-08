@@ -47,7 +47,7 @@ module.exports = (page, args) => {
 		const url = res.url();
 		const status = res.status();
 
-		if (status > 300) {
+		if (status >= 400) {
 			fs.appendFileSync(logFile, `${status}\t${url}\n`, 'utf8');
 		}
 
