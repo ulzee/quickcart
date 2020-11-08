@@ -14,11 +14,14 @@ let args = yargs(process.argv).argv;
 
 const stealthMode = {
 	adorama: true,
+	kohls: true,
 }
 
 let puppeteer = require('puppeteer');
 if (stealthMode[args.store]) {
 	puppeteer = require('puppeteer-extra');
+	const AdblockerPlugin = require('puppeteer-extra-plugin-adblocker');
+	puppeteer.use(AdblockerPlugin());
 	const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 	puppeteer.use(StealthPlugin());
 }
@@ -84,16 +87,17 @@ function* browserEntry() {
 		args: [
 			'--no-sandbox',
 			'--disable-dev-shm-usage',
+			'--incognito',
 			args.proxy ? `--proxy-server=${args.proxy.url}` : '',
 			`--window-size=${monitor.w},${monitor.h}`,
 			`--window-position=${monitor.w*args.accountid},${monitor.h/2*monitor.row[args.store]}`,
 		],
 	});
-	const context = yield browser.createIncognitoBrowserContext();
+	// const context = yield browser.createIncognitoBrowserContext();
 
 	STATE('opening page');
-	page = yield context.newPage();
-	// page = yield browser.newPage();
+	// page = yield context.newPage();
+	page = yield browser.newPage();
 	if (args.proxy) {
 		yield page.authenticate({
 			username: args.proxy.name,

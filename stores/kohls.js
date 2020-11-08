@@ -9,6 +9,9 @@ const vendor = 'KOHLS';
 const log = utils.taglog(vendor);
 global.log = log;
 
+// FIXME: ATC stuck
+// FIXME: checkout in cart stuck
+
 module.exports = {
 	home: domain,
 	*prime(page, args) {
@@ -22,12 +25,15 @@ module.exports = {
 		yield nav.bench(page, 'https://www.kohls.com/myaccount/kohls_login.jsp', waitFor='#kiosk_loginEmail');
 		yield page.waitForTimeout(5 * sec);
 
+		yield page.waitForSelector('#kiosk_loginEmail');
 		yield page.type('#kiosk_loginEmail', user, { delay: 10 });
 		yield page.type('#kiosk_loginPassword', pass, { delay: 10 });
 		yield page.waitForTimeout(sec);
 
 		yield page.click('#Profilelogin');
 		yield page.waitForTimeout(5 * sec);
+
+		yield page.waitForSelector('.glidebfShopRail');
 
 		//empty cart
 		yield nav.go(page, 'https://www.kohls.com/checkout/shopping_cart.jsp');

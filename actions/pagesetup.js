@@ -24,6 +24,10 @@ module.exports = (page, args) => {
 	// don't load any images that eat up bandwidth and time
 	page.setRequestInterception(true);
 	page.on('request', res => {
+		if (res._interceptionHandled) {
+			return;
+		}
+
 		const url = res.url();
 		const assets = ['.jpg', '.png', '.gif', '.jpeg', '.svg', '/i/', 'image', 'webp'];
 		const path = getPath(url);

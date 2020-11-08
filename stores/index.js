@@ -7,4 +7,5 @@ module.exports = {
 	adorama: require('./adorama'),
 	newegg: require('./newegg'),
 	bnh: require('./bnh'),
+	kohls: require('./kohls'),
 };
