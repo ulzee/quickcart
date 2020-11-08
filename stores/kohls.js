@@ -83,17 +83,42 @@ module.exports = {
 
 		yield page.waitForSelector('#shipment-selection');
 		yield page.waitForSelector('.shipStoreOnlyShip');
-		yield click(page, '#addtobagID');
+		while (true) {
+			try {
+				yield click(page, '#addtobagID');
+				yield page.waitForTimeout(50);
+				const loading = page.$eval('.submit-loader', el => {
+					return getComputedStyle(el).display;
+				});
+				if (loading != 'none') {
+					break;
+				}
+			}
+			catch(e) {
+				console.log(e);
+			}
+		}
 
 		// wait for confirmation prompt then go to cart
 		yield page.waitForSelector('.kas-newpb-viewbag-link_ghr'); // TODO: wait for checkout to be enabled
-		yield nav.go(page, 'https://www.kohls.com/checkout/v2/checkout.jsp');
+		yield nav.go(page, 'https://www.kohls.com/checkout/shopping_cart.jsp');
+		yield page.waitForSelector('#js-meter-summary-2');
+		yield click(page, '#button_checkout_sb_top');
 
-		yield page.waitForSelector('.bossSelectShipMethod');
-		yield page.waitForSelector('.preferedStore');
-		yield click(page, '.button_continueToPayment');
+		while(true) {
+			try {
+				yield page.waitForSelector('#payment_information_ccv',
+					{ timeout: 500, visible: true });
+				log('Checkout commencing...');
+				break;
+			}
+			catch(e) {
+				yield click(page, '.button_continueToPayment');
+				log('Trying checkout again...');
+			}
+		}
 
-		yield page.waitForSelector('.keyPlaceOrder');
+		yield page.waitForSelector('#payment_information_ccv');
 		yield page.type('#payment_information_ccv', security);
 		yield click(page, '.keyPlaceOrder');
 
