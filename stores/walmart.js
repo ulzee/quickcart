@@ -47,17 +47,20 @@ module.exports = {
 		yield nav.bench(page, url, waitFor='.price-characteristic');
 	},
 	*standby(page, args) {
-		// yield page.waitForSelector('.price-characteristic');
+		yield page.waitForSelector('.price-characteristic');
 
-		// let loaded = false;
-		// while(!loaded) {
-		// 	// yield page.waitForSelector('div[data-test="storeFulfillmentAggregator"]');
-		// 	try {
-		// 		// there is a 10second wait to check if pickup becomes avail
-		// 		yield page.waitForSelector('button[class*="styles__StyledButton"]', { timeout: 10 * sec });
-		// 		loaded = true;
-		// 	}
-		// 	catch(e) {
+		while(true) {
+			try {
+				yield page.waitForSelector('.prod-ProductCTA--primary');
+				break;
+			}
+			catch(e) {
+				const waitTime = utils.eta();
+				log('Waiting: ' + waitTime.toFixed(2));
+				yield page.waitForTimeout(waitTime * sec);
+				yield nav.bench(page, args.url, waitFor='.price-characteristic', retry=true);
+			}
+		}
 		// 		const outOfStockText = yield page.evaluate(() => {
 		// 			const cantBuy = document.querySelector('div[data-test="storeBlockNonBuyableMessages"]');
 		// 			if (cantBuy) {
@@ -65,21 +68,6 @@ module.exports = {
 		// 			}
 		// 			return null;
 		// 		});
-		// 		if (outOfStockText) {
-		// 			log('OOS: ' + outOfStockText);
-		// 		}
-
-		// 		// TODO: wait until next interval (every 30 sec? on the dot :05:30, :06:00, etc...)
-		// 		const waitTime = utils.eta();
-		// 		log('Waiting: ' + waitTime.toFixed(2));
-		// 		yield page.waitForTimeout(waitTime * sec);
-		// 		yield nav.bench(page, args.url, waitFor='div[data-test="product-price"]', retry=true);
-		// 	}
-		// }
-
-		// if (args.nologin) {
-		// 	throw new Error('No Login Test');
-		// }
 	},
 	*checkout(page, args) {
 		let {

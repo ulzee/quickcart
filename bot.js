@@ -3,10 +3,6 @@
 var io = require('@pm2/io')
 const nav = require('./actions/nav');
 const co = require('co');
-// const puppeteer = require('puppeteer');
-const puppeteer = require('puppeteer-extra');
-const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-puppeteer.use(StealthPlugin());
 const stores = require('./stores');
 const actions = require('./actions');
 const { proxy, sec } = require('./utils');
@@ -16,6 +12,16 @@ const fs = require('fs');
 const utils = require('./utils');
 let args = yargs(process.argv).argv;
 
+const stealthMode = {
+	adorama: true,
+}
+
+let puppeteer = require('puppeteer');
+if (stealthMode[args.store]) {
+	puppeteer = require('puppeteer-extra');
+	const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+	puppeteer.use(StealthPlugin());
+}
 
 const proxyChoice = {
 	bestbuy: 'lumi-excl.txt',

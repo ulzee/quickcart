@@ -19,14 +19,14 @@ module.exports = {
 		if (args.nologin) return;
 
 		// give up on this IP if pages too slow
-		yield nav.bench(page, 'https://www.adorama.com/so3005727.html', waitFor='.product-info-container');
+		yield nav.bench(page, 'https://www.adorama.com/Als.Mvc/nspc/MyAccount', waitFor='#login-email');
 		yield page.waitForTimeout(5 * sec);
 
 
-		yield nav.go(page, 'https://www.adorama.com/Als.Mvc/nspc/MyAccount');
-		yield page.waitForTimeout(5 * sec);
-		yield page.type('#login-email', user, { delay: 10 });
-		yield page.type('#login-pwd', pass, { delay: 10 });
+		// yield nav.go(page, 'https://www.adorama.com/Als.Mvc/nspc/MyAccount');
+		// yield page.waitForTimeout(5 * sec);
+		yield page.type('#login-email', user, { delay: 200 });
+		yield page.type('#login-pwd', pass, { delay: 200 });
 		yield page.waitForTimeout(sec);
 
 		yield page.click('.login-form button');

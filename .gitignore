@@ -5,3 +5,4 @@ scripts
 node_modules
 *.json
 logs
+scratch.js
