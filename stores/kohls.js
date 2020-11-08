@@ -113,8 +113,14 @@ module.exports = {
 				break;
 			}
 			catch(e) {
-				yield click(page, '.button_continueToPayment');
 				log('Trying checkout again...');
+				try {
+					yield click(page, '.button_continueToPayment',
+						wait=-1, check=false, delay=0, options={ visible: true, timeout: 50 });
+				}
+				catch(e) {
+					console.log(e);
+				}
 			}
 		}
 
