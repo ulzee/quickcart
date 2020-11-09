@@ -18,8 +18,6 @@ const loginButton = `#signinCheck .btn`;
 // const cartlink = `.minicart-link`;
 const gotocart = `.addtocartlink > a`;
 // const gotocart = `.minicart-link`;
-const log = utils.taglog('GSTOP');
-global.log = log;
 
 const vendor = 'GSTOP';
 

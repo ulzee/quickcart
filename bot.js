@@ -58,12 +58,19 @@ console.log('[MAIN] Debug:', args.debug);
 const appState = io.metric({
 	name    : 'State',
 });
+
 global.STATE = appState;
 const STATE = (to) => {
 	console.log('[STATE] ' + to);
 	global.STATE.set(to);
 };
 STATE('initial');
+
+const log = (msg) => {
+	console.log(`[${args.store}]`, msg);
+}
+global.log = log;
+log('initial');
 
 // launch greedy browser
 // 1. get proxy
