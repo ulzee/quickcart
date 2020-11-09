@@ -74,9 +74,14 @@ let page = null;
 function* browserEntry() {
 
 	const vendor = stores[args.store];
-	const proxyList = proxyChoice[args.store];
-	const pspec = proxyList ? proxy.list(proxyList) : null;
-	args.proxy = pspec; // allocate a proxy
+
+	// allocate a proxy for every additional bots
+	if (args.accountid != '0') {
+		console.log('[MAIN] Using proxy');
+		const proxyList = proxyChoice[args.store];
+		const pspec = proxyList ? proxy.list(proxyList) : null;
+		args.proxy = pspec;
+	}
 
 	// const headlessMode = args.debug == undefined || !args.debug ? true : false;
 	// console.log('[MAIN] Headless:', headlessMode)
@@ -92,15 +97,11 @@ function* browserEntry() {
 		args: [
 			'--no-sandbox',
 			'--disable-dev-shm-usage',
-			// '--incognito',
 			args.proxy ? `--proxy-server=${args.proxy.url}` : '',
 			`--window-size=${monitor.w},${monitor.h}`,
 			`--window-position=${dx},${dy}`,
 		],
 	});
-
-	// const context = yield browser.createIncognitoBrowserContext();
-	// page = yield context.newPage();
 
 	STATE('opening page');
 	page = yield browser.newPage();
@@ -129,10 +130,6 @@ function* browserEntry() {
 	if (utils.blacklisted({ ip: myip, store: args.store })) {
 		throw new actions.nav.errors.Blacklisted();
 	}
-
-	// homepage
-	// STATE('homepage');
-	// yield actions.nav.go(page, vendor.home);
 
 	console.log('[MAIN] Nav...');
 
