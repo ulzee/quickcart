@@ -35,8 +35,8 @@ const proxyChoice = {
 
 const monitor = {
 	w: 1024, h: 800 ,
-	wd: 400,
-	row: {
+	wd: 400, hd: 400,
+	col: {
 		bestbuy: 0,
 		target: 1,
 		walmart: 2,
@@ -82,8 +82,8 @@ function* browserEntry() {
 	// const headlessMode = args.debug == undefined || !args.debug ? true : false;
 	// console.log('[MAIN] Headless:', headlessMode)
 	STATE('launching browser');
-	const dx = monitor.wd*monitor.row[args.store];
-	const dy = monitor.hd*parseInt(args.accountid) + 20*monitor.row[args.store];
+	const dx = monitor.wd*monitor.col[args.store];
+	const dy = monitor.hd*parseInt(args.accountid) + 20*(1+monitor.col[args.store];)
 	browser = yield puppeteer.launch({
 		headless: false,
 		defaultViewport: {
