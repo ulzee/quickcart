@@ -48,15 +48,16 @@ module.exports = {
 		}
 	},
 	*visit(page, url) {
-		yield nav.bench(page, url, waitFor='.price-current-label');
+		yield nav.go(page, url);
+		yield page.waitForSelector('.shipped-by-newegg');
 	},
 	*standby(page, args) {
-		yield page.waitForSelector('.price-current-label');
+		yield page.waitForSelector('.shipped-by-newegg');
 
 		while (true) {
 
 			try {
-				yield page.waitForSelector('#ProductBuy .btn-primary');
+				yield page.waitForSelector('#ProductBuy .btn-primary', { timeout: 10 });
 				break;
 			}
 			catch (e) {
@@ -68,7 +69,7 @@ module.exports = {
 				log('Waiting: ' + waitTime.toFixed(2));
 				yield page.waitForTimeout(waitTime * sec);
 
-				yield nav.bench(page, args.url, waitFor='.price-current-label', retry=true);
+				yield nav.bench(page, args.url, waitFor='.shipped-by-newegg', retry=true);
 			}
 		}
 	},
