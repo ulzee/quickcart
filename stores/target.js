@@ -6,8 +6,6 @@ const { nav, any, inp, sel, paste, click } = require('../actions');
 const domain = 'https://www.target.com';
 
 const vendor = 'TARGET';
-const log = utils.taglog(vendor);
-global.log = log;
 
 module.exports = {
 	home: domain,

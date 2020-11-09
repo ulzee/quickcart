@@ -6,8 +6,6 @@ const { nav, any, inp, sel, paste, click } = require('../actions');
 const domain = 'https://www.kohls.com';
 
 const vendor = 'KOHLS';
-const log = utils.taglog(vendor);
-global.log = log;
 
 // FIXME: ATC stuck
 // FIXME: checkout in cart stuck

@@ -6,8 +6,6 @@ const { nav, any, inp, sel, paste, click } = require('../actions');
 const domain = 'https://www.adorama.com';
 
 const vendor = 'ADORAMA';
-const log = utils.taglog(vendor);
-global.log = log;
 
 module.exports = {
 	home: domain,

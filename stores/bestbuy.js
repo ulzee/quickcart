@@ -7,8 +7,6 @@ const { nav, inp, sel, paste, click } = require('../actions');
 const domain = 'https://www.bestbuy.com';
 
 const vendor = 'BBUY';
-const log = utils.taglog(vendor);
-global.log = log;
 
 function* waitForSpinner(page) {
 	// wait to see spinner

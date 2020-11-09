@@ -6,8 +6,6 @@ const { nav, any, inp, sel, paste, click } = require('../actions');
 const domain = 'https://www.walmart.com';
 
 const vendor = 'WALMART';
-const log = utils.taglog(vendor);
-global.log = log;
 
 module.exports = {
 	home: domain,
