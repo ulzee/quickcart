@@ -12,6 +12,8 @@ const fs = require('fs');
 const utils = require('./utils');
 let args = yargs(process.argv).argv;
 
+const isMaster = args.accountid == '0';
+
 const stealthMode = {
 	adorama: true,
 	kohls: true,
@@ -83,7 +85,7 @@ function* browserEntry() {
 	const vendor = stores[args.store];
 
 	// allocate a proxy for every additional bots
-	if (args.accountid != '0') {
+	if (!isMaster) {
 		console.log('[MAIN] Using proxy');
 		const proxyList = proxyChoice[args.store];
 		const pspec = proxyList ? proxy.list(proxyList) : null;
@@ -151,6 +153,10 @@ function* browserEntry() {
 	// wait until product is ready
 	STATE('standby: (null)');
 	console.log('[MAIN] Entering standby...');
+	if (!isMaster) {
+		STATE('standby: waiting for master');
+		yield utils.sleepUntilLaunch(page, args.store);
+	}
 	yield vendor.standby(page, args);
 
 	// Checkout logic
