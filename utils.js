@@ -121,4 +121,16 @@ module.exports = {
 
 		return remainder;
 	},
+	*sleepUntilLaunch(page, store, checkTimeout=50) {
+		while (true) {
+			try {
+				const content = fs.readFileSync(`logs/${store}_launched`, 'utf8');
+				log(`Launched: ${store} (${content})`);
+				break;
+			}
+			catch (e) {
+				yield page.waitForTimeout(checkTimeout);
+			}
+		}
+	}
 }
