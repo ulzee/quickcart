@@ -46,11 +46,6 @@ const monitor = {
 	}
 };
 
-const vendor = stores[args.store];
-const proxyList = proxyChoice[args.store];
-const pspec = proxyList ? proxy.list(proxyList) : null;
-args.proxy = pspec;
-
 app.instance();
 args.record = app.record;
 args.account = utils.account(args.store, args.accountid);
@@ -58,7 +53,6 @@ args.logid = `${args.store}_${args.record.spawnid}_${args.accountid}`;
 console.log('[MAIN] ID:', args.record.spawnid);
 console.log(args.account);
 console.log('[MAIN] Debug:', args.debug);
-
 
 
 const appState = io.metric({
@@ -79,11 +73,16 @@ let browser = null;
 let page = null;
 function* browserEntry() {
 
+	const vendor = stores[args.store];
+	const proxyList = proxyChoice[args.store];
+	const pspec = proxyList ? proxy.list(proxyList) : null;
+	args.proxy = pspec; // allocate a proxy
+
 	// const headlessMode = args.debug == undefined || !args.debug ? true : false;
 	// console.log('[MAIN] Headless:', headlessMode)
 	STATE('launching browser');
 	const dx = monitor.wd*monitor.col[args.store];
-	const dy = monitor.hd*parseInt(args.accountid) + 20*(1+monitor.col[args.store];)
+	const dy = monitor.hd*parseInt(args.accountid) + 20*(1+monitor.col[args.store]);
 	browser = yield puppeteer.launch({
 		headless: false,
 		defaultViewport: {
@@ -122,7 +121,7 @@ function* browserEntry() {
 
 	// verify my IP
 	STATE('IP check');
-	const myip = yield actions.myip(page);
+	const myip = yield actions.myip.fetch(page);
 	args.myip = myip;
 	console.log('[MY IP]:', myip);
 
@@ -169,12 +168,13 @@ function main() {
 		STATE('ERR: ' + e);
 		const retry = e instanceof nav.errors.Banned
 			|| e instanceof nav.errors.Slow
-			|| e instanceof nav.errors.Blacklisted;
+			|| e instanceof nav.errors.Blacklisted
+			|| e instanceof actions.myip.errors.IPCheckFailed;
 
 		const blacklist = e instanceof nav.errors.Banned
 			|| e instanceof nav.errors.Slow;
 
-		if (blacklist) {
+		if (args.proxy && blacklist) {
 			utils.blacklisted({ add: args.myip, store: args.store });
 		}
 
