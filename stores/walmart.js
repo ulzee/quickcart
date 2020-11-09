@@ -51,7 +51,7 @@ module.exports = {
 
 		while(true) {
 			try {
-				yield page.waitForSelector('.prod-ProductCTA--primary');
+				yield page.waitForSelector('.prod-ProductCTA--primary', { timeout: 10 });
 				break;
 			}
 			catch(e) {
