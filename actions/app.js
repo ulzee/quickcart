@@ -1,5 +1,5 @@
 
-const config = require('../config');
+const config = require('../configs');
 const { v4: uuid } = require('uuid');
 const co = require('co');
 const bodyParser = require('body-parser')
