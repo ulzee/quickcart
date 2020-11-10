@@ -176,11 +176,13 @@ module.exports = {
 		yield page.waitForTimeout(sec);
 
 		// CVV may be optional
-		const cvvinput = yield page.$('#creditCardInput-cvv');
-		if (cvvinput) {
+		try {
+			yield page.waitForSelector('#creditCardInput-cvv', { timeout: 100 });
 			yield page.type('#creditCardInput-cvv', security, { delay: 10 });
 		}
-		// yield page.waitForSelector('#creditCardInput-cvv');
+		catch (e) {
+			log('No CVV Found...');
+		}
 
 		if (args.debug == undefined || args.debug == false) {
 			yield click(page, 'button[data-test="placeOrderButton"]');
