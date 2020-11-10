@@ -14,10 +14,10 @@ do
 	echo "URL  : $url"
 	echo "Debug: $debug"
 
-	# pm2 start bot.js --no-autorestart --name=$tag -- \
-	# 	--store=$store --accountid=$index \
-	# 	--url=$url \
-	# 	--debug=$debug
+	pm2 start bot.js --no-autorestart --name=$tag -- \
+		--store=$store --accountid=$index \
+		--url=$url \
+		--debug=$debug
 done
 
 

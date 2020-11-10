@@ -121,10 +121,20 @@ module.exports = {
 
 		return remainder;
 	},
+	clearLaunchFile(store) {
+		const fname = `logs/.${store}_launched`;
+		if (fs.existsSync(fname)) {
+			fs.unlinkSync(fname);
+		}
+	},
+	createLaunchFile(store) {
+		const fname = `logs/.${store}_launched`;
+		fs.writeFileSync(fname, new Date(), 'utf8');
+	},
 	*sleepUntilLaunch(page, store, checkTimeout=50) {
 		while (true) {
 			try {
-				const content = fs.readFileSync(`logs/${store}_launched`, 'utf8');
+				const content = fs.readFileSync(`logs/.${store}_launched`, 'utf8');
 				log(`Launched: ${store} (${content})`);
 				break;
 			}

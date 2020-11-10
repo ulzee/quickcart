@@ -92,6 +92,11 @@ function* browserEntry() {
 		args.proxy = pspec;
 	}
 
+	if (isMaster) {
+		// clear in-stock record file watched by slaves
+		utils.clearLaunchFile(args.store);
+	}
+
 	// const headlessMode = args.debug == undefined || !args.debug ? true : false;
 	// console.log('[MAIN] Headless:', headlessMode)
 	STATE('launching browser');
@@ -161,6 +166,10 @@ function* browserEntry() {
 
 	// Checkout logic
 	STATE('checking out...');
+	if (isMaster) {
+		// create in-stock record so that slaves can proceed
+		utils.createLaunchFile(args.store);
+	}
 	yield vendor.checkout(page, args);
 
 	// Closing out
