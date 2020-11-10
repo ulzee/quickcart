@@ -161,6 +161,7 @@ function* browserEntry() {
 	if (!isMaster) {
 		STATE('standby: waiting for master');
 		yield utils.sleepUntilLaunch(page, args.store);
+		yield vendor.visit(page, args.url); // reload page
 	}
 	yield vendor.standby(page, args);
 

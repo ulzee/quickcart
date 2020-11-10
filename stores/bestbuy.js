@@ -143,7 +143,9 @@ module.exports = {
 			const waitTime = utils.eta();
 			log('Waiting: ' + waitTime.toFixed(2));
 			yield page.waitForTimeout(waitTime * sec);
-			yield nav.bench(page, args.url, waitFor='.fulfillment-add-to-cart-button', retry=true);
+
+			// will throw and start over if page is reloading way too slow
+			yield nav.bench(page, args.url, waitFor='.fulfillment-add-to-cart-button');
 		}
 	},
 	*checkout(page, args) {
