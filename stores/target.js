@@ -153,7 +153,11 @@ module.exports = {
 			const validButtons = ls.filter(el =>
 				el.attributes['data-test'].value != 'scheduledDeliveryButton');
 
-			if (validButtons.length) {
+			// favor delivery option button
+			if (validButtons.length >= 2) {
+				validButtons[1].click();
+			}
+			else {
 				validButtons[0].click();
 			}
 		});
