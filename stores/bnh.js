@@ -2,6 +2,7 @@
 const { sec } = require('../utils');
 const utils = require('../utils');
 const { nav, any, inp, sel, paste, click } = require('../actions');
+const reclick = require('../actions/reclick');
 
 const domain = 'https://www.bhphotovideo.com';
 
@@ -18,12 +19,22 @@ module.exports = {
 
 		// give up on this IP if pages too slow
 		yield nav.bench(page, domain, waitFor='.myaccount-header');
-		yield page.waitForTimeout(5 * sec);
+
+		const cookies = yield page.cookies();
+		log('Cookies: ' + cookies.length);
+		for (ind in cookies) {
+			yield page.deleteCookie(cookies[ind]);
+		}
+
+		yield page.waitForTimeout(3 * sec);
+		yield nav.bench(page, domain, waitFor='.myaccount-header');
+		yield page.waitForTimeout(3 * sec);
 
 		yield click(page, '.myaccount-header');
 		yield page.waitForTimeout(sec);
-		yield click(page, '.login');
-		yield page.waitForTimeout(5 * sec);
+		yield click(page, '.login-buttons .login');
+		yield page.waitForTimeout(sec);
+		yield page.waitForSelector('#user-input');
 		yield page.type('#user-input', user, { delay: 10 });
 		yield page.type('#password-input', pass, { delay: 10 });
 		yield page.waitForTimeout(sec);
@@ -44,22 +55,22 @@ module.exports = {
 		yield nav.bench(page, url, waitFor='div[data-selenium="pricingPrice"]');
 	},
 	*standby(page, args) {
-		yield page.waitForSelector('button[data-selenium="addToCartButton"]');
-
 		while (true) {
-			const buttonText = yield page.$eval('button[data-selenium="addToCartButton"]', el => el.textContent);
+			try {
+				const buttonText = yield page.$eval('button[data-selenium="addToCartButton"]', el => el.textContent);
 
-			if (buttonText.includes('Cart')) {
-				break;
+				if (buttonText.includes('Cart')) {
+					break;
+				}
 			}
-			else {
-				log('OOS: ' + buttonText);
+			catch (e) {
+				log('OOS: ');
 
 				const waitTime = utils.eta();
 				log('Waiting: ' + waitTime.toFixed(2));
 				yield page.waitForTimeout(waitTime * sec);
 
-				yield nav.bench(page, args.url, waitFor='button[data-selenium="addToCartButton"]', retry=true);
+				yield nav.bench(page, args.url, waitFor='div[data-selenium="pricingPrice"]', retry=true);
 			}
 		}
 	},
@@ -75,24 +86,46 @@ module.exports = {
 
 		log(url);
 
-		yield click(page, 'button[data-selenium="addToCartButton"]');
+		yield reclick(page,
+			'button[data-selenium="addToCartButton"]',
+			'a[data-selenium="itemLayerViewCartBtn"]');
 
-		// wait for confirmation prompt then go to cart
-		yield page.waitForSelector('a[class*=viewCart_]'); // TODO: wait for checkout to be enabled
-		yield nav.go(page, 'https://www.adorama.com/als.mvc/nspc/revised');
-		yield page.waitForSelector('label[for="payby-cc"]');
+		yield page.click('a[class*=viewCart_]');
+
+		yield page.waitForSelector('.itemTTLprice');
+		yield page.waitForSelector('.btn-begin-checkout');
+		yield page.waitForTimeout(sec);
+		yield click(page, '.btn-begin-checkout');
+
+		yield page.waitForSelector('button[data-selenium="continueFromShipping"]', { visible: true });
+		yield page.waitForTimeout(sec);
+		yield click(page,'button[data-selenium="continueFromShipping"]');
 
 		// proceed checkout
-		yield click(page, 'label[for="payby-cc"]');
+		yield page.waitForSelector('button[data-selenium="reviewOrderButton"]', { visible: true });
+		// get the pay iframe
+		const frame = page.frames().find(frame => frame.url().includes('payment.bh'));
+		log(frame.url());
+		yield frame.waitForSelector('.cc-input');
+		yield paste(frame, '.cc-input', number);
+		yield frame.select('select[name="ccExpMonth"]', month);
+		yield frame.select('select[name="ccExpYear"]', year);
+		yield paste(frame, 'input[name="ccCIDval"]', security);
+		yield page.waitForTimeout(sec);
+		yield click(page, 'button[data-selenium="reviewOrderButton"]');
 
-		yield page.type('#card-number', number, { delay: 1 });
-		yield page.select('.aweform-input.sib1 select', month);
-		yield page.select('.aweform-input.sib2 select', year);
-		yield page.type('#card-cvc', security, { delay: 1 });
-		yield click(page, '#billAsShipPlaceholder');
-
+		yield page.waitForSelector('.place-order');
 		if (args.debug == undefined || args.debug == false) {
-			yield click(page, 'a[data-action="placeOrder"]');
+			while(yield page.$$eval('.place-order', ls => ls.length)) {
+				try {
+					yield page.click('.place-order');
+					yield page.waitForTimeout(500);
+				}
+				catch(e) {
+					console.log(e);
+				}
+			}
+			log('Ordered!');
 		}
 
 		// checkout success

@@ -104,7 +104,7 @@ module.exports = {
 		}
 		return num;
 	},
-	eta(inSeconds=30) {
+	eta(inSeconds=60, offset=1) {
 		// interval in seconds
 
 		const current = new Date();
@@ -114,10 +114,12 @@ module.exports = {
 
 		let remainder = nextInterval - sec;
 
-		// if scheduled too soon, wait until next cycle
-		// if (remainder < inSeconds) {
-		// 	remainder += inSeconds;
-		// }
+		if (remainder > 50) {
+			// still within first 10 seconds of minute
+			return 0; // refresh immediately
+		}
+
+		remainder += offset // add 1 second to give grace period
 
 		return remainder;
 	},
