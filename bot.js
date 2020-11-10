@@ -101,7 +101,7 @@ function* browserEntry() {
 		});
 	}
 	yield page.goto('about:blank');
-	yield page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.183 Safari/537.36');
+	yield page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.183 Safari/537.36");
 	console.log(yield browser.userAgent());
 
 	// add listeners etc...
