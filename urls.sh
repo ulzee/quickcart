@@ -21,7 +21,7 @@ then
 	adorama="https://www.adorama.com/ctc1000p1ssd.html"
 
 	# NOTE: XSX links to test on xsx launch day
-	bestbuy="https://www.bestbuy.com/site/microsoft-xbox-series-x-1tb-console-black/6428324.p"
+	# bestbuy="https://www.bestbuy.com/site/microsoft-xbox-series-x-1tb-console-black/6428324.p"
 	target="https://www.target.com/p/xbox-series-x-console/-/A-80790841"
 	walmart="https://www.walmart.com/ip/Xbox-Series-S/606518560"
 	# walmart="https://www.walmart.com/ip/Xbox-Series-X/443574645"
