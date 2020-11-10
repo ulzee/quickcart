@@ -5,6 +5,7 @@ module.exports = {
 	pagesetup: require('./pagesetup'),
 	inp: require('./inp'),
 	click: require('./click'),
+	reclick: require('./reclick'),
 	paste: require('./paste'),
 	sel: require('./sel'),
 	any: require('./any'),
