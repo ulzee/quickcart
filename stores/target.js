@@ -130,6 +130,7 @@ module.exports = {
 			url,
 			account: {
 				security,
+				number,
 			},
 			logid,
 		} = args;
@@ -175,17 +176,43 @@ module.exports = {
 		yield page.waitForSelector('button[data-test="placeOrderButton"]');
 		yield page.waitForTimeout(sec);
 
+		try {
+			yield page.waitForSelector('#creditCardInput-cardNumber', { timeout: sec });
+			yield page.type('#creditCardInput-cardNumber', number, { delay: 10 });
+			yield page.click('button[data-test="verify-card-button"]');
+			yield page.waitForTimeout(sec);
+		}
+		catch (e) {
+			console.log(e);
+			log('No Card Number Found...');
+		}
+
 		// CVV may be optional
 		try {
-			yield page.waitForSelector('#creditCardInput-cvv', { timeout: 100 });
+			yield page.waitForSelector('#creditCardInput-cvv', { timeout: 3 * sec });
 			yield page.type('#creditCardInput-cvv', security, { delay: 10 });
 		}
 		catch (e) {
+			console.log(e);
 			log('No CVV Found...');
 		}
 
+		try {
+			yield page.waitForSelector('button[data-test="save-and-continue-button"]', { timeout: 3 * sec });
+			yield page.click('button[data-test="save-and-continue-button"]');
+		}
+		catch (e) {
+			console.log(e);
+			log('No Save and continue found...');
+		}
+
+		yield page.waitForTimeout(sec);
+
 		if (args.debug == undefined || args.debug == false) {
-			yield click(page, 'button[data-test="placeOrderButton"]');
+			while (yield page.$$eval('button[data-test="placeOrderButton"]', ls => ls.length)) {
+				yield click(page, 'button[data-test="placeOrderButton"]');
+				yield page.waitForTimeout(sec);
+			}
 		}
 
 		// checkout success
