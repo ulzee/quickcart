@@ -176,6 +176,7 @@ function* browserEntry() {
 	// Closing out
 	STATE('OK');
 	yield page.waitForTimeout(10 * 1000);
+	yield page.close();
 	yield browser.close();
 }
 
@@ -204,7 +205,8 @@ function main() {
 			console.log('[MAIN] RETRYING');
 
 			if (browser) {
-				browser.close()
+				page.close()
+				.then(() => browser.close())
 				.then(() => setImmediate(main))
 				.catch(console.log);
 			}
@@ -220,6 +222,7 @@ function main() {
 
 			if (browser) {
 				page.screenshot({path: `logs/er_${args.logid}.png`})
+				.then(() => page.close())
 				.then(() => browser.close())
 				.then(() => console.log('[MAIN] Errord out'))
 				.catch(console.log);
