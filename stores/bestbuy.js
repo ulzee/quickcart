@@ -76,21 +76,24 @@ function* setPickupStore(page, args) {
 
 function* shipInstead(page) {
 	try {
-		yield page.evaluate('.ispu-card__switch', { timeout: 50 });
+		yield page.waitForSelector('.ispu-card__switch', { timeout: 50 });
 
-		let switchText = yield page.$eval('.ispu-card__switch', el => el.textContent);
+		while (true) {
+			const switchText = yield page.$eval('.ispu-card__switch', el => el.textContent);
 
-		while (switchText.includes('Ship')) {
-
-			yield page.click('.ispu-card__switch');
-			yield waitForSpinner(page);
-
-			switchText = yield page.$eval('.ispu-card__switch', el => el.textContent);
+			if (switchText.includes('Shipping')) {
+				yield page.click('.ispu-card__switch');
+				log(switchText);
+				yield page.waitForTimeout(50);
+			}
+			else {
+				// all set, shipping selected
+				break;
+			}
 		}
 	}
-	catch (e) {
-		log('Switch text not found...');
-		return;
+	catch(e) {
+		// just move on
 	}
 }
 
@@ -115,6 +118,14 @@ module.exports = {
 		yield click(page, '.cia-form__controls__submit');
 
 		yield page.waitForSelector('#gh-search-input');
+
+		// remove everything from cart
+		yield nav.go(page, 'https://www.bestbuy.com/cart');
+		yield page.waitForTimeout(5 * sec);
+		while(yield page.$$eval('.cart-item__remove', ls => ls.length)) {
+			yield page.click('.cart-item__remove');
+			yield page.waitForTimeout(3 * sec);
+		}
 
 		yield setPickupStore(page, args);
 	},
@@ -177,7 +188,7 @@ module.exports = {
 
 		yield waitForSpinner(page);
 
-		// yield shipInstead(page);
+		yield shipInstead(page);
 
 		// CVV input may be asked
 		const cardInput = yield page.evaluate(() =>
@@ -192,6 +203,8 @@ module.exports = {
 			// submit order
 			yield click(page, '.button__fast-track')
 		}
+
+		log('Done!');
 
 		yield page.waitForTimeout(10 * sec);
 		yield page.screenshot({path: `logs/ok_${logid}.png`});
