@@ -43,10 +43,9 @@ module.exports = {
 	},
 	*visit(page, url) {
 		yield nav.bench(page, url, waitFor='.price-characteristic');
+		yield page.waitForSelector('.price-characteristic');
 	},
 	*standby(page, args) {
-		yield page.waitForSelector('.price-characteristic');
-
 		while(true) {
 			try {
 				yield page.waitForSelector('.prod-ProductCTA--primary', { timeout: 10 });
@@ -59,13 +58,6 @@ module.exports = {
 				yield nav.bench(page, args.url, waitFor='.price-characteristic', retry=true);
 			}
 		}
-		// 		const outOfStockText = yield page.evaluate(() => {
-		// 			const cantBuy = document.querySelector('div[data-test="storeBlockNonBuyableMessages"]');
-		// 			if (cantBuy) {
-		// 				return cantBuy.textContent;
-		// 			}
-		// 			return null;
-		// 		});
 	},
 	*checkout(page, args) {
 		let {

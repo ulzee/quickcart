@@ -89,10 +89,9 @@ module.exports = {
 	},
 	*visit(page, url) {
 		yield nav.bench(page, url, waitFor='div[data-test="product-price"]');
+		yield page.waitForSelector('div[data-test="product-price"]');
 	},
 	*standby(page, args) {
-		yield page.waitForSelector('div[data-test="product-price"]');
-
 		let loaded = false;
 		while(!loaded) {
 			// yield page.waitForSelector('div[data-test="storeFulfillmentAggregator"]');
