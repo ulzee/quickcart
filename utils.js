@@ -115,9 +115,9 @@ module.exports = {
 		let remainder = nextInterval - sec;
 
 		// if scheduled too soon, wait until next cycle
-		if (remainder < inSeconds) {
-			remainder += inSeconds;
-		}
+		// if (remainder < inSeconds) {
+		// 	remainder += inSeconds;
+		// }
 
 		return remainder;
 	},
