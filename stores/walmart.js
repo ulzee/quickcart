@@ -2,6 +2,7 @@
 const { sec } = require('../utils');
 const utils = require('../utils');
 const { nav, any, inp, sel, paste, click, traffic } = require('../actions');
+const exists = require('../actions/exists');
 
 const domain = 'https://www.walmart.com';
 
@@ -40,8 +41,9 @@ module.exports = {
 		}
 	},
 	*visit(page, url) {
+		waitfor = traffic.match('walmart.com/p13n/v1/walmart/itempage/content');
 		yield nav.bench(page, url, waitFor='.price-characteristic');
-		yield page.waitForSelector('.price-characteristic');
+		yield waitfor;
 	},
 	*standby(page, args) {
 		// FIXME: sometimes ATC doesnt appear for a while (find the atc resolve traffic)
@@ -81,13 +83,28 @@ module.exports = {
 		yield nav.go(page, 'https://www.walmart.com/checkout');
 
 		yield waitfor; // wait for spinners to finish
-		yield click(page, 'button[data-automation-id="fulfillment-continue"]');
 
-		yield click(page, 'button[data-automation-id="address-book-action-buttons-on-continue"]');
+		// any of these bottom actions may be optional
+		if (yield exists(page, 'button[data-automation-id="fulfillment-continue"]')) {
+			yield click(page, 'button[data-automation-id="fulfillment-continue"]');
+			yield page.waitForTimeout(sec);
+		}
 
-		yield page.waitForSelector('#cvv-confirm');
-		yield page.type('#cvv-confirm', security, { delay: 10 });
-		yield click(page, 'button[data-automation-id="submit-payment-cc"]');
+		if (yield exists(page, 'button[data-automation-id="address-book-action-buttons-on-continue"]')) {
+			waitfor = traffic.match('walmart.com/api/checkout/v3/contract');
+			yield click(page, 'button[data-automation-id="address-book-action-buttons-on-continue"]');
+			yield waitfor;
+		}
+
+		if (yield exists(page, '#cvv-confirm')) {
+			yield page.waitForSelector('#cvv-confirm');
+			yield paste(page, '#cvv-confirm', security);
+
+			yield page.waitForTimeout(100);
+			waitfor = traffic.match('www.walmart.com/api/checkout/v3/contract/:PCID/payment');
+			yield click(page, 'button[data-automation-id="submit-payment-cc"]');
+			yield waitfor;
+		}
 
 		if (args.debug == undefined || args.debug == false) {
 			yield click(page, '.auto-submit-place-order');
