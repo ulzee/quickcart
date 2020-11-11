@@ -113,7 +113,8 @@ module.exports = {
 		const nextInterval = Math.ceil(sec / inSeconds) * inSeconds;
 		let remainder = nextInterval - sec;
 
-		const secUntilNextHour = Math.ceil(sec / 60*60) * inSeconds - sec;
+		const hr = 60 * 60
+		const secUntilNextHour = Math.ceil(sec / hr) * hr - sec;
 
 		if (secUntilNextHour > 60*50) {
 			// first 10 minutes of the hour, keep refreshing blindly
