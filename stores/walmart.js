@@ -43,9 +43,7 @@ module.exports = {
 		log('Cart cleared');
 	},
 	*visit(page, url) {
-		waitfor = traffic.match('/api/v2/collector/beacon'); // FIXME: beacon is unreliable
-		yield nav.bench(page, url, waitFor='.price-characteristic');
-		yield waitfor;
+		yield nav.bench(page, url, waitFor='.SellerInfo-shipping-msg');
 	},
 	*standby(page, args) {
 		// FIXME: sometimes ATC doesnt appear for a while (find the atc resolve traffic)
@@ -59,7 +57,7 @@ module.exports = {
 				const waitTime = utils.eta();
 				log('Waiting: ' + waitTime.toFixed(2));
 				yield page.waitForTimeout(waitTime * sec);
-				yield nav.bench(page, args.url, waitFor='.price-characteristic', retry=true);
+				yield nav.bench(page, args.url, waitFor='.SellerInfo-shipping-msg', retry=true);
 			}
 		}
 	},
@@ -81,51 +79,41 @@ module.exports = {
 
 		// Go to checkout page
 		yield waitfor; // wait for cart add confirmation
-		waitfor = traffic.match('walmart.com/checkout.prefetch');
 		yield nav.go(page, 'https://www.walmart.com/checkout');
 
 
-		// any of these bottom actions may be optional
-		yield waitfor; // wait for spinners to finish
-		yield page.waitForTimeout(sec);
-		if (yield exists(page, 'button[data-automation-id="fulfillment-continue"]')) {
-			log('Shipping confirm');
-			waitfor = traffic.match('/api/v2/collector')
-			yield click(page, 'button[data-automation-id="fulfillment-continue"]');
-			yield waitfor;
-			yield page.waitForTimeout(sec);
+		function asyncButton(buttonName) {
+			page.waitForSelector(buttonName, { visible: true, timeout: 10 * 60 * sec })
+			.then(() => page.waitForTimeout(100))
+			.then(() => page.click(buttonName))
+			.then(() => log(buttonName))
+			.then().catch(console.log);
 		}
 
-		if (yield exists(page, 'button[data-automation-id="address-book-action-buttons-on-continue"]')) {
-			log('Address confirm');
-			// waitfor = traffic.match('/checkout-customer/:CID/credit-card');
-			waitfor = traffic.match('/api/v2/collector')
-			yield click(page, 'button[data-automation-id="address-book-action-buttons-on-continue"]');
-			yield waitfor;
-			yield page.waitForTimeout(sec);
+		asyncButton('button[data-automation-id="fulfillment-continue"]')
+		asyncButton('button[data-automation-id="address-book-action-buttons-on-continue"]')
+		asyncButton('.fulfillment-opts-continue button')
+		asyncButton('button[data-automation-id="submit-payment-cc"]')
+
+		page.waitForSelector('#cvv-confirm', { visible: true, timeout: 10 * 60 * sec })
+		.then(() => page.waitForTimeout(100))
+		.then(() => paste(page, '#cvv-confirm', security))
+		.then(() => page.click('button[data-automation-id="submit-payment-cc"]', security))
+		.then().catch(console.log);
+
+
+		while(true) {
+			try {
+				yield page.waitForSelector('.auto-submit-place-order', { timeout: 100 });
+				break;
+			}
+			catch(e) {
+				// waiting for checkout button
+			}
 		}
 
-		if (yield exists(page, '#cvv-confirm')) {
-			log('CVV Confirm');
-			yield page.waitForSelector('#cvv-confirm');
-			yield paste(page, '#cvv-confirm', security);
-
-			yield page.waitForTimeout(1);
-			waitfor = traffic.match('/api/v2/collector')
-			yield click(page, 'button[data-automation-id="submit-payment-cc"]');
-			yield waitfor;
-			yield page.waitForTimeout(sec);
-		}
-
-		if (yield exists(page, '.fulfillment-opts-continue button')) {
-			log('Confirm payment');
-			waitfor = traffic.match('/api/v2/collector')
-			yield click(page, '.fulfillment-opts-continue button');
-			yield waitfor;
-			yield page.waitForTimeout(sec);
-		}
-
-		if (args.debug == undefined || args.debug == false) {
+		if (args.debug == false || args.debug == undefined) {
+			// submit order
 			yield click(page, '.auto-submit-place-order');
 		}
 
@@ -133,6 +121,6 @@ module.exports = {
 		log('Done!');
 		yield page.waitForTimeout(10 * sec);
 		yield page.screenshot({path: `logs/ok_${logid}.png`});
-		yield page.waitForTimeout(100 * sec);
+		yield page.waitForTimeout(10 * sec);
 	},
 }
