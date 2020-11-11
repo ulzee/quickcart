@@ -11,4 +11,5 @@ module.exports = {
 	any: require('./any'),
 	app: require('./app'),
 	traffic: require('./traffic'),
+	exists: require('./exists'),
 };
