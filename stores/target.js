@@ -1,7 +1,7 @@
 
 const sec = 1000;
 const utils = require('../utils');
-const { nav, any, inp, sel, paste, click } = require('../actions');
+const { nav, any, inp, sel, paste, click, traffic } = require('../actions');
 
 const domain = 'https://www.target.com';
 
@@ -17,15 +17,10 @@ module.exports = {
 		if (args.nologin) return;
 
 		// give up on this IP if pages too slow
-		yield page.waitForTimeout(5 * sec);
 		yield nav.bench(page, args.url, waitFor='div[data-test="product-price"]');
-		yield page.waitForTimeout(5 * sec);
+		yield page.waitForTimeout(sec);
 
-		// yield nav.go(page, 'https://login.target.com/gsp/static/v1/login/');
-
-		// yield nav.go(page, domain);
 		yield page.waitForSelector('#account');
-		yield page.waitForTimeout(5 * sec);
 		yield click(page, '#account')
 		yield page.waitForTimeout(5 * sec);
 		yield click(page, '#accountNav-signIn');
@@ -46,21 +41,27 @@ module.exports = {
 		// set Pickup store
 		const [accountIndex, batchID] = args.account.genid.split('_');
 		const zipCode = batchID;
-		const index = 1;
+
+		waitfor = traffic.match('v3/stores/nearby/');
 		yield click(page, '#storeId-utilityNavBtn');
+		yield waitfor;
 		yield page.waitForTimeout(sec);
+
 		yield page.type('#zipOrCityState', zipCode);
 		yield page.waitForTimeout(sec);
+		waitfor = traffic.match('v3/stores/nearby/');
 		yield click(page, 'button[data-test="storeLocationSearch-button"]');
+		yield waitfor;
 		yield page.waitForTimeout(sec);
 		yield page.evaluate(({ index }) => {
-			const buttons = document.querySelectorAll('button[data-test="storeId-listItem-setStore"]');
-			return buttons[index].click();
+			const block = document.querySelectorAll('div[class*="StoreIdSearchBlock__Spacing"]')[index+1];
+			const button = block.querySelector('button[data-test="storeId-listItem-setStore"]');
+			if (button) {
+				button.click();
+			}
 		}, { index: parseInt(accountIndex) });
 
-		yield page.waitForTimeout(5 * sec);
-
-
+		yield page.waitForTimeout(3*sec);
 
 		// empty cart
 		yield nav.go(page, 'https://www.target.com/co-cart');
@@ -88,17 +89,16 @@ module.exports = {
 		}
 	},
 	*visit(page, url) {
+		waitfor = traffic.match('redsky.target.com/redsky_aggregations/v1/web/pdp_fulfillment_v1');
 		yield nav.bench(page, url, waitFor='div[data-test="product-price"]');
-		yield page.waitForSelector('div[data-test="product-price"]');
+		yield waitfor;
 	},
 	*standby(page, args) {
 		let loaded = false;
-		while(!loaded) {
-			// yield page.waitForSelector('div[data-test="storeFulfillmentAggregator"]');
+		while(true) {
 			try {
-				// there is a 10second wait to check if pickup becomes avail
-				yield page.waitForSelector('button[class*="styles__StyledButton"]', { timeout: 10 * sec });
-				loaded = true;
+				yield page.waitForSelector('button[class*="styles__StyledButton"]', { timeout: 500 });
+				break;
 			}
 			catch(e) {
 				const outOfStockText = yield page.evaluate(() => {
@@ -112,16 +112,14 @@ module.exports = {
 					log('OOS: ' + outOfStockText);
 				}
 
-				// TODO: wait until next interval (every 30 sec? on the dot :05:30, :06:00, etc...)
 				const waitTime = utils.eta();
 				log('Waiting: ' + waitTime.toFixed(2));
 				yield page.waitForTimeout(waitTime * sec);
-				yield nav.bench(page, args.url, waitFor='div[data-test="product-price"]', retry=true);
-			}
-		}
 
-		if (args.nologin) {
-			throw new Error('No Login Test');
+				waitfor = traffic.match('redsky.target.com/redsky_aggregations/v1/web/pdp_fulfillment_v1');
+				yield nav.bench(page, args.url, waitFor='div[data-test="product-price"]', retry=true);
+				yield waitfor;
+			}
 		}
 	},
 	*checkout(page, args) {
@@ -136,19 +134,10 @@ module.exports = {
 
 		log(url);
 
-
-		// click the first available atc button
-		// try {
-		// 	yield page.waitForSelector('button[class*="styles__StyledButton"]');
-		// }
-		// catch(e) {
-		// 	if (oos) {
-		// 		throw new Error('OUT OF STOCK!');
-		// 	}
-		// 	throw new Error('Pickup not available!');
-		// }
-
+		//
 		// Choose the first available purchase option
+
+		waitfor = traffic.match('carts.target.com/web_checkouts/v1/cart_items');
 		yield page.$$eval('button[class*="styles__StyledButton"]', ls => {
 			const validButtons = ls.filter(el =>
 				el.attributes['data-test'].value != 'scheduledDeliveryButton');
@@ -163,51 +152,45 @@ module.exports = {
 		});
 
 		// wait for confirmation prompt then go to cart
-		yield page.waitForSelector('button[aria-label="close"]');
-		yield page.waitForTimeout(sec);
-		// yield nav.go(page, 'https://www.target.com/co-cart');
+		yield waitfor;
 
-		// HOTFIX: go straight to checkout
+		// go straight to checkout
+		waitfor = traffic.match('carts.target.com/web_checkouts/v1/pre_checkout');
 		yield nav.go(page, 'https://www.target.com/co-review?precheckout=true');
 
 		// proceed checkout
-		// yield click(page, 'button[data-test="checkout-button"]', delay=1);
 		yield page.waitForSelector('button[data-test="placeOrderButton"]');
-		yield page.waitForTimeout(sec);
+		yield waitfor;
 
-		try {
-			yield page.waitForSelector('#creditCardInput-cardNumber', { timeout: sec });
+		if (yield page.$$eval('#creditCardInput-cardNumber', ls => ls.length)) {
+			log('Card Number Check');
+			yield page.waitForSelector('#creditCardInput-cardNumber', { timeout: 100 });
 			yield page.type('#creditCardInput-cardNumber', number, { delay: 10 });
 			yield page.click('button[data-test="verify-card-button"]');
-			yield page.waitForTimeout(sec);
-		}
-		catch (e) {
-			console.log(e);
-			log('No Card Number Found...');
+			yield page.waitForTimeout(sec); // TODO: wait for traffic
 		}
 
 		// CVV may be optional
-		try {
-			yield page.waitForSelector('#creditCardInput-cvv', { timeout: 3 * sec });
+		if (yield page.$$eval('#creditCardInput-cvv', ls => ls.length)) {
+			log('CVV Check');
+			yield page.waitForSelector('#creditCardInput-cvv');
 			yield page.type('#creditCardInput-cvv', security, { delay: 10 });
 		}
-		catch (e) {
-			console.log(e);
-			log('No CVV Found...');
-		}
 
-		try {
-			yield page.waitForSelector('button[data-test="save-and-continue-button"]', { timeout: 3 * sec });
+		if (yield page.$$eval('button[data-test="save-and-continue-button"]', ls => ls.length)) {
+			log('Save and continue');
+			yield page.waitForSelector('button[data-test="save-and-continue-button"]');
+
+			waitfor = traffic.match('carts.target.com/web_checkouts/v1/cart_views');
 			yield page.click('button[data-test="save-and-continue-button"]');
-		}
-		catch (e) {
-			console.log(e);
-			log('No Save and continue found...');
-		}
+			yield waitfor;
 
-		yield page.waitForTimeout(sec);
+			// wait for a second call which refreshes the page
+			yield traffic.match('carts.target.com/web_checkouts/v1/cart_views');
+		}
 
 		if (args.debug == undefined || args.debug == false) {
+			log('Checking out');
 			while (yield page.$$eval('button[data-test="placeOrderButton"]', ls => ls.length)) {
 				yield click(page, 'button[data-test="placeOrderButton"]');
 				yield page.waitForTimeout(sec);
