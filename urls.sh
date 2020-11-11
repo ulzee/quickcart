@@ -1,6 +1,4 @@
 
-debug="true"
-
 # ps5
 bestbuy="https://www.bestbuy.com/site/sony-playstation-5-console/6426149.p"
 target="https://www.target.com/p/playstation-5-console/-/A-81114595"
@@ -21,10 +19,9 @@ then
 	adorama="https://www.adorama.com/ctc1000p1ssd.html"
 
 	# NOTE: XSX links to test on xsx launch day
-	# bestbuy="https://www.bestbuy.com/site/microsoft-xbox-series-x-1tb-console-black/6428324.p"
+	bestbuy="https://www.bestbuy.com/site/microsoft-xbox-series-x-1tb-console-black/6428324.p"
 	target="https://www.target.com/p/xbox-series-x-console/-/A-80790841"
-	walmart="https://www.walmart.com/ip/Xbox-Series-S/606518560"
-	# walmart="https://www.walmart.com/ip/Xbox-Series-X/443574645"
+	walmart="https://www.walmart.com/ip/Xbox-Series-X/443574645"
 	# NOTE: couldnt find a good xsx newegg link
 	newegg="https://www.newegg.com/p/N82E16868110292?Description=playstation%205&cm_re=playstation_5-_-68-110-292-_-Product"
 	adorama="https://www.adorama.com/xbrrt00001.html"
