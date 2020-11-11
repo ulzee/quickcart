@@ -198,7 +198,8 @@ module.exports = {
 			yield waitfor;
 
 			// wait for a second call which refreshes the page
-			yield traffic.match('carts.target.com/web_checkouts/v1/cart_views');
+			waitfor = traffic.match('carts.target.com/web_checkouts/v1/cart_views');
+			yield waitfor;
 		}
 
 		if (args.debug == undefined || args.debug == false) {
