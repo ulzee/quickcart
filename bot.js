@@ -132,11 +132,12 @@ function* browserEntry() {
 	// wait until product is ready
 	STATE('standby: (null)');
 	console.log('[MAIN] Entering standby...');
-	if (!isMaster) {
-		STATE('standby: waiting for master');
-		yield utils.sleepUntilLaunch(page, args.store);
-		yield vendor.visit(page, args.url); // reload page
-	}
+	// NOTE: disabling master-slave signalling
+	// if (!isMaster) {
+	// 	STATE('standby: waiting for master');
+	// 	yield utils.sleepUntilLaunch(page, args.store);
+	// 	yield vendor.visit(page, args.url); // reload page
+	// }
 	yield vendor.standby(page, args);
 
 	// Checkout logic
