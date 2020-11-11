@@ -59,23 +59,19 @@ module.exports = {
 				const setButton = block.querySelector('button[data-test="storeId-listItem-setStore"]');
 				const confirmButton = block.querySelector('button[data-test="storeId-listItem-confirmStore"]');
 				if (setButton) {
-					setButton.click(() => {
-						yes();
-					});
+					setButton.click();
 				}
 				else if (confirmButton) {
-					confirmButton.click(() => {
-						yes();
-					});
+					confirmButton.click();
 				}
-				else {
-					yes();
-				}
+				yes();
 			});
 		}, { index: parseInt(accountIndex) });
+		log('Store selected');
 		yield page.waitForTimeout(3*sec);
 
 		// empty cart
+		log('Emptying cart...');
 		yield nav.go(page, 'https://www.target.com/co-cart');
 		yield page.waitForSelector('#search');
 		yield page.waitForTimeout(3 * sec);

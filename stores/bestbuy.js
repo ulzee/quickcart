@@ -32,11 +32,8 @@ function* setPickupStore(page, args) {
 
 		if (!myStore.classList.contains('store-selected')) {
 			const button = myStore.querySelector('.make-this-your-store');
-			return new Promise((yes) => {
-				button.click(() => {
-					yes(true);
-				});
-			});
+			button.click();
+			return true;
 		}
 		else {
 			return false;
@@ -163,8 +160,8 @@ module.exports = {
 			throw nav.errors.Banned();
 		}
 
-		yield waitfor; // NOTE: add traffic monitor to ship
-		yield shipInstead(page);
+		yield waitfor;
+		// yield shipInstead(page); // NOTE: this takes way too much time
 
 		// CVV input may be asked
 		const cardInput = yield page.evaluate(() =>
