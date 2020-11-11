@@ -53,14 +53,26 @@ module.exports = {
 		yield click(page, 'button[data-test="storeLocationSearch-button"]');
 		yield waitfor;
 		yield page.waitForTimeout(sec);
-		yield page.evaluate(({ index }) => {
-			const block = document.querySelectorAll('div[class*="StoreIdSearchBlock__Spacing"]')[index+1];
-			const button = block.querySelector('button[data-test="storeId-listItem-setStore"]');
-			if (button) {
-				button.click();
-			}
+		yield page.evaluate(async ({ index }) => {
+			return new Promise((yes) => {
+				const block = document.querySelectorAll('div[class*="StoreIdSearchBlock__Spacing"]')[index+1];
+				const setButton = block.querySelector('button[data-test="storeId-listItem-setStore"]');
+				const confirmButton = block.querySelector('button[data-test="storeId-listItem-confirmStore"]');
+				if (setButton) {
+					setButton.click(() => {
+						yes();
+					});
+				}
+				else if (confirmButton) {
+					confirmButton.click(() => {
+						yes();
+					});
+				}
+				else {
+					yes();
+				}
+			});
 		}, { index: parseInt(accountIndex) });
-
 		yield page.waitForTimeout(3*sec);
 
 		// empty cart
