@@ -1,7 +1,7 @@
 
 const { sec } = require('../utils');
 const utils = require('../utils');
-const { nav, any, inp, sel, paste, click } = require('../actions');
+const { nav, any, inp, sel, paste, click, traffic } = require('../actions');
 
 const domain = 'https://www.walmart.com';
 
@@ -16,20 +16,16 @@ module.exports = {
 
 		if (args.nologin) return;
 
-		// give up on this IP if pages too slow
-		yield page.waitForTimeout(5 * sec);
+		waitfor = traffic.match('beacon.walmart.com');
 		yield nav.bench(page, 'https://www.walmart.com/account/login', waitFor='#email');
-		yield page.waitForTimeout(5 * sec);
+		yield waitfor;
 
-		// yield nav.go(page, 'https://login.target.com/gsp/static/v1/login/');
-
-		yield page.waitForTimeout(5 * sec);
 		yield page.type('#email', user, { delay: 10 });
 		yield page.type('#password', pass, { delay: 10 });
-		yield page.waitForTimeout(sec);
 
 		yield page.click('button[data-automation-id="signin-submit-btn"]');
-		yield page.waitForTimeout(5 * sec);
+		yield page.waitForSelector('.nav-wplus-container');
+		yield page.waitForTimeout(sec);
 
 		//empty cart
 		yield nav.go(page, 'https://www.walmart.com/cart');
@@ -37,8 +33,10 @@ module.exports = {
 		yield page.waitForTimeout(5 * sec);
 
 		while(yield page.$$eval('button[data-automation-id="cart-item-remove"]', ls => ls.length)) {
+			waitfor = traffic.match('walmart.com/cart/cart-electrode/api/logger/v2');
 			yield page.$eval('button[data-automation-id="cart-item-remove"]', el => el.click());
-			yield page.waitForTimeout(2 * sec);
+			yield waitfor
+			yield page.waitForTimeout(sec);
 		}
 	},
 	*visit(page, url) {
@@ -46,12 +44,14 @@ module.exports = {
 		yield page.waitForSelector('.price-characteristic');
 	},
 	*standby(page, args) {
+		// FIXME: sometimes ATC doesnt appear for a while (find the atc resolve traffic)
 		while(true) {
 			try {
-				yield page.waitForSelector('.prod-ProductCTA--primary', { timeout: 10 });
+				yield page.waitForSelector('.prod-ProductCTA--primary', { timeout: 0.5*sec });
 				break;
 			}
 			catch(e) {
+				console.log(e);
 				const waitTime = utils.eta();
 				log('Waiting: ' + waitTime.toFixed(2));
 				yield page.waitForTimeout(waitTime * sec);
@@ -72,14 +72,15 @@ module.exports = {
 
 
 		// Choose the first available purchase option
+		waitfor = traffic.match('b.wal.co/beacon.js');
 		yield click(page, 'button[class*="prod-ProductCTA"]');
 
-		// wait for confirmation prompt then go to cart
-		yield page.waitForSelector('.checkoutBtn');
-
+		// Go to checkout page
+		yield waitfor; // wait for cart add confirmation
+		waitfor = traffic.match('walmart.com/checkout.prefetch');
 		yield nav.go(page, 'https://www.walmart.com/checkout');
 
-		// proceed checkout
+		yield waitfor; // wait for spinners to finish
 		yield click(page, 'button[data-automation-id="fulfillment-continue"]');
 
 		yield click(page, 'button[data-automation-id="address-book-action-buttons-on-continue"]');

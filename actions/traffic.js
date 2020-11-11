@@ -11,6 +11,8 @@ module.exports = {
 					if (res.url().includes(item.match)) {
 						item.active = false;
 						item.yes(res);
+						global.log('Traffic: ' + item.match);
+						global.log('       : ' + res.url());
 					}
 				}
 			}

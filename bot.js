@@ -1,6 +1,6 @@
 
-
-var io = require('@pm2/io')
+const { stealthMode, proxyChoice, monitor } = require('./configs');
+const io = require('@pm2/io')
 const nav = require('./actions/nav');
 const co = require('co');
 const stores = require('./stores');
@@ -14,11 +14,6 @@ let args = yargs(process.argv).argv;
 
 const isMaster = args.accountid == '0';
 
-const stealthMode = {
-	adorama: true,
-	kohls: true,
-}
-
 let puppeteer = require('puppeteer');
 if (stealthMode[args.store]) {
 	puppeteer = require('puppeteer-extra');
@@ -27,26 +22,6 @@ if (stealthMode[args.store]) {
 	const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 	puppeteer.use(StealthPlugin());
 }
-
-const proxyChoice = {
-	bestbuy: 'lumi-excl.txt',
-	target: 'lumi-excl.txt',
-	walmart: 'lumi-excl.txt',
-	// adorama: 'lumi-excl.txt',
-}
-
-const monitor = {
-	w: 1024, h: 800 ,
-	wd: 400, hd: 400,
-	col: {
-		bestbuy: 0,
-		target: 1,
-		walmart: 2,
-		newegg: 3,
-		adorama: 4,
-		kohls: 5,
-	}
-};
 
 app.instance();
 args.record = app.record;
@@ -131,19 +106,18 @@ function* browserEntry() {
 
 	// add listeners etc...
 	pagesetup(page, args);
+	actions.traffic.setup(page, args);
 
 	console.log('[MAIN] Ready...');
 
 	// verify my IP
 	STATE('IP check');
-	const myip = yield actions.myip.fetch(page);
-	args.myip = myip;
-	console.log('[MY IP]:', myip);
-
-
-	if (utils.blacklisted({ ip: myip, store: args.store })) {
-		throw new actions.nav.errors.Blacklisted();
-	}
+	// const myip = yield actions.myip.fetch(page);
+	// args.myip = myip;
+	// console.log('[MY IP]:', myip);
+	// if (utils.blacklisted({ ip: myip, store: args.store })) {
+	// 	throw new actions.nav.errors.Blacklisted();
+	// }
 
 	console.log('[MAIN] Nav...');
 
