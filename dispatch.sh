@@ -2,7 +2,7 @@
 source ./urls.sh
 
 # stores="bestbuy target walmart newegg adorama kohls"
-stores="walmart"
+stores="bestbuy target"
 
 index=0
 for store in $stores
