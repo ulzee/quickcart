@@ -29,7 +29,7 @@ args.account = utils.account(args.store, args.accountid);
 args.logid = `${args.store}_${args.record.spawnid}_${args.accountid}`;
 console.log('[MAIN] ID:', args.record.spawnid);
 console.log(args.account);
-console.log('[MAIN] Debug:', args.debug);
+console.log('[MAIN] Debug: ' + args.debug);
 
 
 const appState = io.metric({
