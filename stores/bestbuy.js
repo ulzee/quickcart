@@ -2,89 +2,63 @@
 const sec = 1000;
 const co = require('co');
 const utils = require('../utils');
-const { nav, inp, sel, paste, click } = require('../actions');
+const { nav, inp, sel, paste, click, traffic } = require('../actions');
 
 const domain = 'https://www.bestbuy.com';
 
-const vendor = 'BBUY';
-
-function* waitForSpinner(page) {
-	// wait to see spinner
-	let waiting = true;
-	while (waiting) {
-		const loading = yield page.evaluate(() => {
-			return getComputedStyle(document.querySelector('.page-spinner'), ':after').visibility;
-		});
-
-		if (loading == 'visible') waiting = false;
-		else yield page.waitForTimeout(50);
-	}
-
-	// wait for spinner to go away
-	waiting = true;
-	while (waiting) {
-		const loading = yield page.evaluate(() => {
-			return getComputedStyle(document.querySelector('.page-spinner'), ':after').visibility;
-		});
-
-		if (loading == 'hidden') waiting = false;
-		else yield page.waitForTimeout(50);
-	}
-}
+const vendor = 'bestbuy';
 
 function* setPickupStore(page, args) {
 
 	const [accountIndex, batchID] = args.account.genid.split('_');
 	const zipCode = batchID;
 
+	waitfor = traffic.match('www.bing.com/maps/geotfe/comp/stl');
 	yield nav.go(page, 'https://www.bestbuy.com/site/store-locator/');
-
-	// choose a random location to reset
-	yield page.waitForSelector('.zip-code-input');
-	try {
-		yield page.waitForSelector('.MicrosoftMap');
-	}
-	catch(e) {
-		throw new nav.errors.Slow();
-	}
+	yield waitfor;
 	log('Map ready');
-	yield page.waitForTimeout(5 * sec);
-	yield page.type('.zip-code-input', '61801', { delay: 10 });
-	yield page.click('.location-zip-code-form-content button');
-	yield page.waitForSelector('.shop-location-map');
-	yield page.waitForTimeout(5 * sec);
-
-	yield page.evaluate(() => {
-		const buttons = document.querySelectorAll('.make-this-your-store');
-		return buttons[1].click();
-	});
-	yield page.waitForTimeout(5 * sec); // wait for change to apply
 
 	// choose near target zip code
-	yield paste(page, '.zip-code-input', '');
+	waitfor = traffic.match('www.bestbuy.com/location/v1/US/zipcode');
 	yield page.type('.zip-code-input', zipCode, { delay: 10 });
 	yield page.click('.location-zip-code-form-content button');
-	yield page.waitForTimeout(5 * sec);
+	yield waitfor;
 
 	yield page.waitForSelector('.make-this-your-store');
-	yield page.evaluate(({ index }) => {
-		const myStore = document.querySelectorAll('.make-this-your-store')[index];
-		return myStore.click();
+	yield page.waitForTimeout(3*sec);
+	waitfor = traffic.match('www.bestbuy.com/api/tcfb/model.json');
+	const storeSet = yield page.evaluate(async ({ index }) => {
+		const myStore = document.querySelectorAll('.store')[index];
+
+		if (!myStore.classList.contains('store-selected')) {
+			const button = myStore.querySelector('.make-this-your-store');
+			return new Promise((yes) => {
+				button.click(() => {
+					yes(true);
+				});
+			});
+		}
+		else {
+			return false;
+		}
 	}, { index: parseInt(accountIndex) });
-	yield page.waitForTimeout(5 * sec); // wait for change to apply
+	log('Store was set: ' + storeSet);
+	if (storeSet) {
+		yield waitfor;
+	}
+	yield page.waitForTimeout(sec); // wait for change to apply
 }
 
 function* shipInstead(page) {
 	try {
-		yield page.waitForSelector('.ispu-card__switch', { timeout: 50 });
-
 		while (true) {
 			const switchText = yield page.$eval('.ispu-card__switch', el => el.textContent);
 
 			if (switchText.includes('Shipping')) {
-				yield page.click('.ispu-card__switch');
 				log(switchText);
-				yield page.waitForTimeout(50);
+				waitfor = traffic.match('bestbuy.com/pricing/v1/price/item?salesChannel');
+				yield page.click('.ispu-card__switch');
+				yield waitfor;
 			}
 			else {
 				// all set, shipping selected
@@ -93,6 +67,7 @@ function* shipInstead(page) {
 		}
 	}
 	catch(e) {
+		console.log('Switching:', e);
 		// just move on
 	}
 }
@@ -130,8 +105,9 @@ module.exports = {
 		yield setPickupStore(page, args);
 	},
 	*visit(page, url) {
+		waitfor = traffic.match('bestbuy.com/api/tcfb/model.json');
 		yield nav.go(page, url);
-		yield page.waitForSelector('.priceView-customer-price');
+		yield waitfor;
 	},
 	*standby(page, args) {
 		yield page.waitForSelector('.fulfillment-add-to-cart-button');
@@ -140,7 +116,7 @@ module.exports = {
 		while(!loaded) {
 			const buttonText = yield page.$eval(
 				'.add-to-cart-button',
-				el => el.textContent, { timeout: 10 * sec });
+				el => el.textContent, { timeout: sec });
 
 			if (buttonText.includes('Cart')) {
 				loaded = true;
@@ -150,13 +126,14 @@ module.exports = {
 				log('OOS: ' + buttonText);
 			}
 
-			// TODO: wait until next interval (every 30 sec? on the dot :05:30, :06:00, etc...)
 			const waitTime = utils.eta();
 			log('Waiting: ' + waitTime.toFixed(2));
 			yield page.waitForTimeout(waitTime * sec);
 
 			// will throw and start over if page is reloading way too slow
+			waitfor = traffic.match('bestbuy.com/api/tcfb/model.json');
 			yield nav.bench(page, args.url, waitFor='.fulfillment-add-to-cart-button');
+			yield waitfor;
 		}
 	},
 	*checkout(page, args) {
@@ -170,12 +147,12 @@ module.exports = {
 
 		log(url);
 
+		waitfor = traffic.match('bestbuy.com/streams/v1/consume');
 		yield page.waitForSelector('.add-to-cart-button');
-		yield page.waitForSelector('.fulfillment-fulfillment-summary strong');
-
 		yield click(page, '.add-to-cart-button');
 
-		yield page.waitForSelector('.go-to-cart-button');
+		yield waitfor;
+		waitfor = traffic.match('bestbuy.com/pricing/v1/price/item?salesChannel');
 		yield nav.go(page, 'https://www.bestbuy.com/checkout/r/fast-track');
 
 		try {
@@ -186,8 +163,7 @@ module.exports = {
 			throw nav.errors.Banned();
 		}
 
-		yield waitForSpinner(page);
-
+		yield waitfor; // NOTE: add traffic monitor to ship
 		yield shipInstead(page);
 
 		// CVV input may be asked
