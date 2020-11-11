@@ -33,15 +33,17 @@ module.exports = {
 		yield page.waitForSelector('.has-items');
 		yield page.waitForTimeout(5 * sec);
 
+		log('Removing from cart');
 		while(yield page.$$eval('button[data-automation-id="cart-item-remove"]', ls => ls.length)) {
-			waitfor = traffic.match('walmart.com/cart/cart-electrode/api/logger/v2');
+			waitfor = traffic.match('walmart.com/api/v3/cart/:CRT/items');
 			yield page.$eval('button[data-automation-id="cart-item-remove"]', el => el.click());
 			yield waitfor
 			yield page.waitForTimeout(sec);
 		}
+		log('Cart cleared');
 	},
 	*visit(page, url) {
-		waitfor = traffic.match('walmart.com/p13n/v1/walmart/itempage/content');
+		waitfor = traffic.match('/api/v2/collector/beacon'); // FIXME: beacon is unreliable
 		yield nav.bench(page, url, waitFor='.price-characteristic');
 		yield waitfor;
 	},
@@ -82,28 +84,45 @@ module.exports = {
 		waitfor = traffic.match('walmart.com/checkout.prefetch');
 		yield nav.go(page, 'https://www.walmart.com/checkout');
 
-		yield waitfor; // wait for spinners to finish
 
 		// any of these bottom actions may be optional
+		yield waitfor; // wait for spinners to finish
+		yield page.waitForTimeout(sec);
 		if (yield exists(page, 'button[data-automation-id="fulfillment-continue"]')) {
+			log('Shipping confirm');
+			waitfor = traffic.match('/api/v2/collector')
 			yield click(page, 'button[data-automation-id="fulfillment-continue"]');
+			yield waitfor;
 			yield page.waitForTimeout(sec);
 		}
 
 		if (yield exists(page, 'button[data-automation-id="address-book-action-buttons-on-continue"]')) {
-			waitfor = traffic.match('walmart.com/api/checkout/v3/contract');
+			log('Address confirm');
+			// waitfor = traffic.match('/checkout-customer/:CID/credit-card');
+			waitfor = traffic.match('/api/v2/collector')
 			yield click(page, 'button[data-automation-id="address-book-action-buttons-on-continue"]');
 			yield waitfor;
+			yield page.waitForTimeout(sec);
 		}
 
 		if (yield exists(page, '#cvv-confirm')) {
+			log('CVV Confirm');
 			yield page.waitForSelector('#cvv-confirm');
 			yield paste(page, '#cvv-confirm', security);
 
-			yield page.waitForTimeout(100);
-			waitfor = traffic.match('www.walmart.com/api/checkout/v3/contract/:PCID/payment');
+			yield page.waitForTimeout(1);
+			waitfor = traffic.match('/api/v2/collector')
 			yield click(page, 'button[data-automation-id="submit-payment-cc"]');
 			yield waitfor;
+			yield page.waitForTimeout(sec);
+		}
+
+		if (yield exists(page, '.fulfillment-opts-continue button')) {
+			log('Confirm payment');
+			waitfor = traffic.match('/api/v2/collector')
+			yield click(page, '.fulfillment-opts-continue button');
+			yield waitfor;
+			yield page.waitForTimeout(sec);
 		}
 
 		if (args.debug == undefined || args.debug == false) {
@@ -114,6 +133,6 @@ module.exports = {
 		log('Done!');
 		yield page.waitForTimeout(10 * sec);
 		yield page.screenshot({path: `logs/ok_${logid}.png`});
-		yield page.waitForTimeout(10 * sec);
+		yield page.waitForTimeout(100 * sec);
 	},
 }
