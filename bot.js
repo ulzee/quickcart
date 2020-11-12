@@ -1,5 +1,5 @@
 
-const { stealthMode, proxyChoice, monitor } = require('./configs');
+const { stealthMode, proxyChoice, monitor, exe } = require('./configs');
 const io = require('@pm2/io')
 const nav = require('./actions/nav');
 const co = require('co');
@@ -91,8 +91,8 @@ function* browserEntry() {
 			`--window-position=${dx},${dy}`,
 		],
 	}
-	if (configs.exe) {
-		pupConfigs.executablePath = configs.exe;
+	if (exe) {
+		pupConfigs.executablePath = exe;
 	}
 	browser = yield puppeteer.launch(pupConfigs);
 
