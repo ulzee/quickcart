@@ -14,7 +14,7 @@ do
 	echo "URL  : $url"
 	echo "Debug: $debug"
 
-	pm2 start bot.js --no-autorestart --name=$tag -- \
+	pm2 start bot.js --name=$tag -- \
 		--store=$store --accountid=$index \
 		--url=$url \
 		--debug=$debug

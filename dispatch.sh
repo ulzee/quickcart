@@ -1,6 +1,9 @@
 
 source ./urls.sh
 
+# bestbuy 17
+# target 15
+
 # stores="bestbuy target walmart newegg adorama kohls"
 stores="bestbuy target"
 
@@ -13,7 +16,7 @@ do
 	echo $tag
 	echo $url
 
-	pm2 start bot.js --no-autorestart --name=$tag -- \
+	pm2 start bot.js --name=$tag -- \
 		--store=$store --accountid=$index \
 		--url=$url \
 		--debug=$debug
