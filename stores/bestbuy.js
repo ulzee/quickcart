@@ -20,7 +20,8 @@ function* setPickupStore(page, args) {
 
 	// choose near target zip code
 	waitfor = traffic.match('www.bestbuy.com/location/v1/US/zipcode');
-	yield page.type('.zip-code-input', zipCode, { delay: 10 });
+	yield page.waitForTimeout(3*sec);
+	yield page.type('.zip-code-input', zipCode, { delay: 50 });
 	yield page.click('.location-zip-code-form-content button');
 	yield waitfor;
 
