@@ -26,7 +26,6 @@ function* setPickupStore(page, args) {
 
 	yield page.waitForSelector('.make-this-your-store');
 	yield page.waitForTimeout(3*sec);
-	waitfor = traffic.match('www.bestbuy.com/api/tcfb/model.json');
 	const storeSet = yield page.evaluate(async ({ index }) => {
 		const myStore = document.querySelectorAll('.store')[index];
 
@@ -40,10 +39,7 @@ function* setPickupStore(page, args) {
 		}
 	}, { index: parseInt(accountIndex) });
 	log('Store was set: ' + storeSet);
-	if (storeSet) {
-		yield waitfor;
-	}
-	yield page.waitForTimeout(sec); // wait for change to apply
+	yield page.waitForTimeout(3*sec); // wait for change to apply
 }
 
 function* shipInstead(page) {
