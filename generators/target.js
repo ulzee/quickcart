@@ -10,8 +10,11 @@ module.exports = function* (page, {
 }) {
 
 	yield nav.go(page, 'https://target.com');
+	yield page.waitForTimeout(5*sec);
 	yield click(page, '#account')
+	yield page.waitForTimeout(5*sec);
 	yield click(page, '#accountNav-createAccount');
+	yield page.waitForTimeout(5*sec);
 
 	yield page.waitForSelector('#username');
 	// const fakeName = faker.name.findName().split(' ');

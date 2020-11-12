@@ -12,8 +12,8 @@ const stores = [
 	// 'gamestop',
 	// 'sears',
 	// 'kohls',
-	'walmart'
-	// 'bestbuy'
+	// 'walmart'
+	'bestbuy'
 ];
 
 // same address for everyone

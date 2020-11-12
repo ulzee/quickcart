@@ -8,7 +8,7 @@ let args = yargs(process.argv).argv;
 const fs = require('fs');
 const Papa = require('papaparse');
 const { profile } = require('console');
-
+global.log = console.log;
 let browser = null;
 
 function* main() {
