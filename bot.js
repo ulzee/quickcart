@@ -77,7 +77,7 @@ function* browserEntry() {
 	STATE('launching browser');
 	const dx = monitor.wd*monitor.col[args.store]+ 20*parseInt(args.accountid);
 	const dy = monitor.hd*parseInt(args.accountid) + 20*(1+monitor.col[args.store]);
-	browser = yield puppeteer.launch({
+	const pupConfigs = {
 		headless: false,
 		defaultViewport: {
 			width: parseInt(1570 + (100 * Math.random() - 200)),
@@ -90,7 +90,11 @@ function* browserEntry() {
 			`--window-size=${monitor.w},${monitor.h}`,
 			`--window-position=${dx},${dy}`,
 		],
-	});
+	}
+	if (configs.exe) {
+		pupConfigs.executablePath = configs.exe;
+	}
+	browser = yield puppeteer.launch(pupConfigs);
 
 	STATE('opening page');
 	page = yield browser.newPage();
