@@ -75,7 +75,7 @@ function* browserEntry() {
 	// const headlessMode = args.debug == undefined || !args.debug ? true : false;
 	// console.log('[MAIN] Headless:', headlessMode)
 	STATE('launching browser');
-	const dx = monitor.wd*monitor.col[args.store];
+	const dx = monitor.wd*monitor.col[args.store]+ 20*parseInt(args.accountid);
 	const dy = monitor.hd*parseInt(args.accountid) + 20*(1+monitor.col[args.store]);
 	browser = yield puppeteer.launch({
 		headless: false,
@@ -133,11 +133,11 @@ function* browserEntry() {
 	STATE('standby: (null)');
 	console.log('[MAIN] Entering standby...');
 	// NOTE: disabling master-slave signalling
-	// if (!isMaster) {
-	// 	STATE('standby: waiting for master');
-	// 	yield utils.sleepUntilLaunch(page, args.store);
-	// 	yield vendor.visit(page, args.url); // reload page
-	// }
+	if (!isMaster) {
+		STATE('standby: waiting for master');
+		yield utils.sleepUntilLaunch(page, args.store);
+		yield vendor.visit(page, args.url); // reload page
+	}
 	yield vendor.standby(page, args);
 
 	// Checkout logic
