@@ -104,7 +104,7 @@ module.exports = {
 		}
 		return num;
 	},
-	eta(inSeconds=60, offset=1) {
+	eta(inSeconds=30, offset=1) {
 		// interval in seconds
 
 		const current = new Date();
@@ -114,16 +114,18 @@ module.exports = {
 		let remainder = nextInterval - sec;
 
 		const hr = 60 * 60
+		const mini = 60
 		const secUntilNextHour = Math.ceil(sec / hr) * hr - sec;
+		const secUntilNextMinute = Math.ceil(sec / mini) * mini - sec;
 
 		if (secUntilNextHour > 60*50) {
 			// first 10 minutes of the hour, keep refreshing blindly
 			return 0;
 		}
 
-		if (remainder > 50) {
-			// still within first 10 seconds of minute
-			return 0; // refresh immediately
+		if (secUntilNextMinute > 50) {
+			// first 10 seconds of the minute, keep refreshing blindly
+			return 0;
 		}
 
 		remainder += offset // add 1 second to give grace period

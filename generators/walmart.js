@@ -25,7 +25,7 @@ module.exports = function* (page, {
 	yield page.waitForTimeout(sec);
 	yield click(page, 'button[data-automation-id="signup-submit-btn"]');
 
-	yield page.waitForTimeout(5 * sec);
+	yield page.waitForTimeout(30 * sec);
 
 	// address
 	yield nav.go(page, 'https://www.walmart.com/account/deliveryaddresses');
