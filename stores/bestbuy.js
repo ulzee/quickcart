@@ -2,69 +2,13 @@
 const sec = 1000;
 const co = require('co');
 const utils = require('../utils');
-const { nav, inp, sel, paste, click, traffic } = require('../actions');
+const { nav, click, traffic, watch } = require('../actions');
+const { action } = require('@pm2/io');
+const actions = require('../actions');
 
 const domain = 'https://www.bestbuy.com';
 
 const vendor = 'bestbuy';
-
-function* setPickupStore(page, args) {
-
-	const [accountIndex, batchID] = args.account.genid.split('_');
-	const zipCode = batchID;
-
-	waitfor = traffic.match('www.bing.com/maps/geotfe/comp/stl');
-	yield nav.go(page, 'https://www.bestbuy.com/site/store-locator/');
-	yield waitfor;
-	log('Map ready');
-
-	// choose near target zip code
-	waitfor = traffic.match('www.bestbuy.com/location/v1/US/zipcode');
-	yield page.waitForTimeout(3*sec);
-	yield page.type('.zip-code-input', zipCode, { delay: 50 });
-	yield page.click('.location-zip-code-form-content button');
-	yield waitfor;
-
-	yield page.waitForSelector('.make-this-your-store');
-	yield page.waitForTimeout(3*sec);
-	const storeSet = yield page.evaluate(async ({ index }) => {
-		const myStore = document.querySelectorAll('.store')[index];
-
-		if (!myStore.classList.contains('store-selected')) {
-			const button = myStore.querySelector('.make-this-your-store');
-			button.click();
-			return true;
-		}
-		else {
-			return false;
-		}
-	}, { index: parseInt(accountIndex) });
-	log('Store was set: ' + storeSet);
-	yield page.waitForTimeout(3*sec); // wait for change to apply
-}
-
-function* shipInstead(page) {
-	try {
-		while (true) {
-			const switchText = yield page.$eval('.ispu-card__switch', el => el.textContent);
-
-			if (switchText.includes('Shipping')) {
-				log(switchText);
-				waitfor = traffic.match('bestbuy.com/pricing/v1/price/item?salesChannel');
-				yield page.click('.ispu-card__switch');
-				yield waitfor;
-			}
-			else {
-				// all set, shipping selected
-				break;
-			}
-		}
-	}
-	catch(e) {
-		console.log('Switching:', e);
-		// just move on
-	}
-}
 
 module.exports = {
 	vendor,
@@ -96,7 +40,7 @@ module.exports = {
 			yield page.waitForTimeout(3 * sec);
 		}
 
-		yield setPickupStore(page, args);
+		// yield setPickupStore(page, args);
 	},
 	*visit(page, url) {
 		waitfor = traffic.match('bestbuy.com/api/tcfb/model.json');
@@ -104,30 +48,36 @@ module.exports = {
 		yield waitfor;
 	},
 	*standby(page, args) {
-		yield page.waitForSelector('.fulfillment-add-to-cart-button');
+		yield page.waitForSelector('.product-data-value');
 
-		let loaded = false;
-		while(!loaded) {
-			const buttonText = yield page.$eval(
-				'.add-to-cart-button',
-				el => el.textContent, { timeout: sec });
+		while(true) {
+			const pageSKU = yield page.$eval(
+				'.sku .product-data-value',
+				el => el.textContent.trim(' \t\n'));
 
-			if (buttonText.includes('Cart')) {
-				loaded = true;
-				break;
-			}
-			else {
-				log('OOS: ' + buttonText);
-			}
+			log(`SKU: ${pageSKU}`);
+			const added = yield actions.atc(page, {
+				url: 'https://www.bestbuy.com/cart/api/v1/addToCart',
+				params: {
+					headers: {
+						"User-Agent": args.userAgent,
+						"Accept": "application/json",
+						"Accept-Language": "en-US,en;q=0.5",
+						"Content-Type": "application/json; charset=UTF-8"
+					},
+					referrer: args.url,
+					body: JSON.stringify({ items: [{skuId: pageSKU }]}),
+					method: 'POST',
+				}
+			}, res => {
+				return res.status < 300;
+			});
+
+			if (added) break;
 
 			const waitTime = utils.eta();
 			log('Waiting: ' + waitTime.toFixed(2));
 			yield page.waitForTimeout(waitTime * sec);
-
-			// will throw and start over if page is reloading way too slow
-			waitfor = traffic.match('bestbuy.com/api/tcfb/model.json');
-			yield nav.bench(page, args.url, waitFor='.fulfillment-add-to-cart-button');
-			yield waitfor;
 		}
 	},
 	*checkout(page, args) {
@@ -148,17 +98,12 @@ module.exports = {
 		yield waitfor;
 		waitfor = traffic.match('bestbuy.com/pricing/v1/price/item?salesChannel');
 		yield nav.go(page, 'https://www.bestbuy.com/checkout/r/fast-track');
-
-		try {
-			// If this page doesn't load, the IP is blacklsited
-			yield page.waitForSelector('.button__fast-track');
-		}
-		catch(e) {
-			throw nav.errors.Banned();
-		}
-
 		yield waitfor;
-		// yield shipInstead(page); // NOTE: this takes way too much time
+
+		// May encounter two-step checkout
+		watch('.button--continue');
+
+		yield page.waitForSelector('.button__fast-track');
 
 		// CVV input may be asked
 		const cardInput = yield page.evaluate(() =>
