@@ -1,5 +1,5 @@
 
-const { stealthMode, proxyChoice, monitor, exe } = require('./configs');
+const { stealthMode, proxyChoice, monitor, exe, userAgent } = require('./configs');
 const io = require('@pm2/io')
 const nav = require('./actions/nav');
 const co = require('co');
@@ -105,7 +105,8 @@ function* browserEntry() {
 		});
 	}
 	yield page.goto('about:blank');
-	yield page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.183 Safari/537.36');
+	args.userAgent = userAgent;
+	yield page.setUserAgent(args.userAgent);
 	console.log(yield browser.userAgent());
 
 	// add listeners etc...

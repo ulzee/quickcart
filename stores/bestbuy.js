@@ -2,7 +2,7 @@
 const sec = 1000;
 const co = require('co');
 const utils = require('../utils');
-const { nav, click, traffic, watch } = require('../actions');
+const { nav, any, click, traffic, watch } = require('../actions');
 const { action } = require('@pm2/io');
 const actions = require('../actions');
 
@@ -101,22 +101,39 @@ module.exports = {
 		yield waitfor;
 
 		// May encounter two-step checkout
-		watch('.button--continue');
-
-		yield page.waitForSelector('.button__fast-track');
+		const appeared = yield any(page, ['.button--continue', '.button__fast-track']);
 
 		// CVV input may be asked
-		const cardInput = yield page.evaluate(() =>
-			document.querySelectorAll('#credit-card-cvv').length);
-		log('Card input: ' + cardInput);
-		if (cardInput) {
-			yield page.waitForSelector('#credit-card-cvv');
-			yield page.type('#credit-card-cvv', security);
+		function* ccvFill() {
+			const cardInput = yield page.evaluate(() =>
+				document.querySelectorAll('#credit-card-cvv').length);
+			log('Card input: ' + cardInput);
+			if (cardInput) {
+				yield page.waitForSelector('#credit-card-cvv');
+				yield page.type('#credit-card-cvv', security);
+			}
 		}
 
-		if (args.debug == false || args.debug == undefined) {
-			// submit order
-			yield click(page, '.button__fast-track')
+		if (appeared == '.button--continue') {
+			// Twostage checkout prompted
+			yield page.click('.button--continue');
+			yield page.waitForSelector('.button--place-order');
+			yield ccvFill();
+
+			if (args.debug == false || args.debug == undefined) {
+				// submit order
+				yield page.click('.button--place-order');
+			}
+		}
+		else {
+			// Fast track checkout
+			yield page.waitForSelector('.button__fast-track');
+			yield ccvFill();
+
+			if (args.debug == false || args.debug == undefined) {
+				// submit order
+				yield click(page, '.button__fast-track')
+			}
 		}
 
 		log('Done!');
