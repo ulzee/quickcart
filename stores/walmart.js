@@ -1,7 +1,7 @@
 
 const { sec } = require('../utils');
 const utils = require('../utils');
-const { nav, any, inp, sel, paste, click, traffic } = require('../actions');
+const { nav, any, inp, sel, paste, click, traffic, atc } = require('../actions');
 const exists = require('../actions/exists');
 
 const domain = 'https://www.walmart.com';
@@ -43,22 +43,53 @@ module.exports = {
 		log('Cart cleared');
 	},
 	*visit(page, url) {
-		yield nav.bench(page, url, waitFor='.SellerInfo-shipping-msg');
+		// yield nav.bench(page, url, waitFor='.SellerInfo-shipping-msg');
+		yield nav.bench(page, url, waitFor='#item');
 	},
 	*standby(page, args) {
-		// FIXME: sometimes ATC doesnt appear for a while (find the atc resolve traffic)
+
+		yield page.waitForSelector('#item');
+
+		const offerId = yield page.$eval('#item', el => {
+			const meta = JSON.parse(el.innerHTML);
+			const single = meta['item']['product']['buyBox']['products'];
+			if (!single.length) return null;
+			return single[0]['offerId'];
+		});
+
+		log(`OfferId: ${offerId}`);
+
 		while(true) {
-			try {
-				yield page.waitForSelector('.prod-ProductCTA--primary', { timeout: 0.5*sec });
-				break;
-			}
-			catch(e) {
-				console.log(e);
-				const waitTime = utils.eta();
-				log('Waiting: ' + waitTime.toFixed(2));
-				yield page.waitForTimeout(waitTime * sec);
-				yield nav.bench(page, args.url, waitFor='.SellerInfo-shipping-msg', retry=true);
-			}
+
+			const added = yield atc(page, {
+				url: 'https://www.walmart.com/api/v3/cart/customer/:CID/items',
+				params: {
+					headers: {
+						"User-Agent": args.userAgent,
+						"Accept": "application/json",
+						"Accept-Language": "en-US,en;q=0.5",
+						"Content-Type": "application/json; charset=UTF-8"
+					},
+					referrer: args.url,
+					body: JSON.stringify({
+						offerId,
+						quantity: 1,
+						storeIds:[5686,2568,5605,5604,5152],
+						location:{ postalCode: '90024' , city: 'Los Angeles' , state: 'CA' , isZipLocated:true},
+						shipMethodDefaultRule:'SHIP_RULE_1',
+					}),
+					method: 'POST',
+				}
+			}, res => {
+				return res.status < 300;
+			});
+
+			if (added) break;
+
+			const waitTime = utils.eta();
+			log('Waiting: ' + waitTime.toFixed(2));
+			yield page.waitForTimeout(waitTime * sec);
+
 		}
 	},
 	*checkout(page, args) {

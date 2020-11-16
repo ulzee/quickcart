@@ -104,7 +104,7 @@ module.exports = {
 		}
 		return num;
 	},
-	eta(inSeconds=30, offset=1) {
+	eta(inSeconds=10, rapid=1) {
 		// interval in seconds
 
 		const current = new Date();
@@ -117,18 +117,17 @@ module.exports = {
 		const mini = 60
 		const secUntilNextHour = Math.ceil(sec / hr) * hr - sec;
 		const secUntilNextMinute = Math.ceil(sec / mini) * mini - sec;
+		const secondsIntoMinute = sec - Math.floor(sec / mini) * mini;
 
-		if (secUntilNextHour > 60*50) {
-			// first 10 minutes of the hour, keep refreshing blindly
-			return 0;
+		// if (secUntilNextHour > 60*50) {
+		// 	// first 10 minutes of the hour, keep refreshing blindly
+		// 	return rapid;
+		// }
+
+		if (secondsIntoMinute <= 5) {
+			// first 5 seconds of the minute, keep refreshing blindly
+			return rapid;
 		}
-
-		if (secUntilNextMinute > 50) {
-			// first 10 seconds of the minute, keep refreshing blindly
-			return 0;
-		}
-
-		remainder += offset // add 1 second to give grace period
 
 		return remainder;
 	},
