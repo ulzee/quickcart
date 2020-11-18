@@ -30,7 +30,8 @@ module.exports = {
 
 		yield click(page, '.cia-form__controls__submit');
 
-		yield page.waitForSelector('#gh-search-input');
+		// wait for 5 mins to handle password reset
+		yield page.waitForSelector('#gh-search-input', { timeout: 5 * 60 * sec});
 
 		// remove everything from cart
 		yield nav.go(page, 'https://www.bestbuy.com/cart');

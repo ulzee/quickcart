@@ -104,7 +104,7 @@ module.exports = {
 		}
 		return num;
 	},
-	eta(inSeconds=10, rapid=1) {
+	eta(inSeconds=10, rapid=2) {
 		// interval in seconds
 
 		const current = new Date();
