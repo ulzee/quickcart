@@ -92,13 +92,23 @@ module.exports = {
 
 		log(url);
 
-		waitfor = traffic.match('bestbuy.com/streams/v1/consume');
-		yield page.waitForSelector('.add-to-cart-button');
-		yield click(page, '.add-to-cart-button');
+		// at this stage, product was added to cart via API
+		// waitfor = traffic.match('bestbuy.com/streams/v1/consume');
+		// yield page.waitForSelector('.add-to-cart-button');
+		// yield click(page, '.add-to-cart-button');
+
+		function watchLoginPrompt() {
+			page.waitForSelector('#fld-p1',  { timeout: 30 * 60 * sec })
+			.then(() => page.type('#fld-p1', pass, { delay: 50 }))
+			.then(() => page.waitForTimeout(100))
+			.then(() => click(page, '.cia-form__controls__submit'))
+			.catch(console.log);
+		}
 
 		yield waitfor;
 		waitfor = traffic.match('bestbuy.com/pricing/v1/price/item?salesChannel');
 		yield nav.go(page, 'https://www.bestbuy.com/checkout/r/fast-track');
+		watchLoginPrompt();
 		yield waitfor;
 
 		// May encounter two-step checkout
