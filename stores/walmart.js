@@ -152,6 +152,6 @@ module.exports = {
 		log('Done!');
 		yield page.waitForTimeout(10 * sec);
 		yield page.screenshot({path: `logs/ok_${logid}.png`});
-		yield page.waitForTimeout(10 * sec);
+		yield page.waitForTimeout(30 * 60 * sec);
 	},
 }

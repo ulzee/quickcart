@@ -1,5 +1,5 @@
 
-const { stealthMode, proxyChoice, monitor, exe, userAgent } = require('./configs');
+const { stealthMode, proxyChoice, monitor, exe, userAgent, msMode } = require('./configs');
 const io = require('@pm2/io')
 const nav = require('./actions/nav');
 const co = require('co');
@@ -29,6 +29,7 @@ args.account = utils.account(args.store, args.accountid);
 args.logid = `${args.store}_${args.record.spawnid}_${args.accountid}`;
 console.log('[MAIN] ID:', args.record.spawnid);
 console.log(args.account);
+if (args.item == 'debug') args.debug = true;
 console.log('[MAIN] Debug: ' + args.debug);
 
 
@@ -60,14 +61,14 @@ function* browserEntry() {
 	const vendor = stores[args.store];
 
 	// allocate a proxy for every additional bots
-	if (!isMaster) {
+	if (msMode && !isMaster) {
 		console.log('[MAIN] Using proxy');
 		const proxyList = proxyChoice[args.store];
 		const pspec = proxyList ? proxy.list(proxyList) : null;
 		args.proxy = pspec;
 	}
 
-	if (isMaster) {
+	if (msMode && isMaster) {
 		// clear in-stock record file watched by slaves
 		utils.clearLaunchFile(args.store);
 	}
@@ -86,9 +87,12 @@ function* browserEntry() {
 		args: [
 			'--no-sandbox',
 			'--disable-dev-shm-usage',
+			'--disable-setuid-sandbox',
 			args.proxy ? `--proxy-server=${args.proxy.url}` : '',
 			`--window-size=${monitor.w},${monitor.h}`,
 			`--window-position=${dx},${dy}`,
+			'--disable-features=IsolateOrigins,site-per-process',
+			'--shm-size=1gb',
 		],
 	}
 	if (exe) {
@@ -134,11 +138,19 @@ function* browserEntry() {
 	STATE('visit url');
 	yield vendor.visit(page, args.url);
 
+	if (args.sync) {
+		// wait until given time to start checkout
+		const buffer = 10; // buffer over time in milliseconds
+		const waitTime = utils.eta(inSeconds=60 * 60) + buffer; // top of the hour
+		STATE('Waiting: ' + waitTime.toFixed(2));
+		yield page.waitForTimeout(waitTime * sec);
+	}
+
 	// wait until product is ready
 	STATE('standby: (null)');
 	console.log('[MAIN] Entering standby...');
 	// NOTE: disabling master-slave signalling
-	if (!isMaster) {
+	if (msMode && !isMaster) {
 		STATE('standby: waiting for master');
 		yield utils.sleepUntilLaunch(page, args.store);
 		yield vendor.visit(page, args.url); // reload page
@@ -147,7 +159,7 @@ function* browserEntry() {
 
 	// Checkout logic
 	STATE('checking out...');
-	if (isMaster) {
+	if (msMode && isMaster) {
 		// create in-stock record so that slaves can proceed
 		utils.createLaunchFile(args.store);
 	}
