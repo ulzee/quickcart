@@ -104,7 +104,7 @@ module.exports = {
 		}
 		return num;
 	},
-	eta(inSeconds=10, rapid=2) {
+	eta(inSeconds=10, rapid=1, rapidDuration=5) {
 		// interval in seconds
 
 		const current = new Date();
@@ -124,7 +124,7 @@ module.exports = {
 		// 	return rapid;
 		// }
 
-		if (secondsIntoMinute <= 5) {
+		if (secondsIntoMinute <= rapidDuration) {
 			// first 5 seconds of the minute, keep refreshing blindly
 			return rapid;
 		}
