@@ -21,17 +21,22 @@ module.exports = {
 		yield page.waitForTimeout(sec);
 
 		function dismissPhone() {
-			page.waitForSelector('form[method="post"]', { timeout: 24 * 60 * 60 * sec })
-			.then(() => page.waitForTimeout(3*sec))
-			.then(() => page.$eval('form[method="post"]', el => el.nextSibling.click()))
+			page.waitForSelector('#capturePhone', { timeout: 24 * 60 * 60 * sec, visible: true })
+			.then(() => page.waitForTimeout(5*sec))
+			.then(() => page.$eval('form[method="post"]', el => {
+				console.log('here');
+				console.log(el.nextSibling);
+				el.nextSibling.click();
+			}))
 			.then(() => log('Dismissing Phone input...'))
 			.catch();
 		}
 		dismissPhone();
 
 		function dismissJoinCirlce() {
-			page.waitForSelector('#circle-skip', { timeout: 24 * 60 * 60 * sec })
+			page.waitForSelector('#circle-skip', { timeout: 24 * 60 * 60 * sec, visible: true })
 			.then(() => page.click('#circle-skip'))
+			.then(() => log('Skipping circle regist...'))
 			.catch();
 		}
 		dismissJoinCirlce();
