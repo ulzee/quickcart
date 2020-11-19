@@ -87,6 +87,7 @@ function* browserEntry() {
 		args: [
 			'--incognito',
 			'--no-sandbox',
+			'--disable-web-security',
 			'--disable-dev-shm-usage',
 			'--disable-setuid-sandbox',
 			args.proxy ? `--proxy-server=${args.proxy.url}` : '',

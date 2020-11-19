@@ -180,8 +180,6 @@ module.exports = {
 				return res.status < 300;
 			});
 
-			yield page.waitForTimeout(60 * sec);
-
 			if (added) break;
 
 			const waitTime = utils.eta();
@@ -235,7 +233,9 @@ module.exports = {
 			log('Card Number Check');
 			yield page.waitForSelector('#creditCardInput-cardNumber', { timeout: 100 });
 			yield page.type('#creditCardInput-cardNumber', number, { delay: 10 });
+			waitfor = traffic.match('target.com/checkout_payments/v1/credit_card_compare');
 			yield page.click('button[data-test="verify-card-button"]');
+			yield waitfor;
 			yield page.waitForTimeout(sec); // TODO: wait for traffic
 		}
 
