@@ -92,9 +92,11 @@ module.exports = {
 		yield page.waitForSelector('#search');
 		yield page.waitForTimeout(3 * sec);
 		try {
-			yield page.waitForSelector('div[data-test="boxEmptyMsg"]');
+			log('Waiting for empty cart...')
+			yield page.waitForSelector('div[data-test="boxEmptyMsg"]', { timeout: 5 * sec });
 		}
 		catch (e) {
+			log('Emptying cart...')
 			while(true) {
 				const remaining = yield page.$$eval('button[data-test="cartItem-deleteBtn"]', ls => {
 					if (!ls.length) return 0;
