@@ -85,6 +85,7 @@ function* browserEntry() {
 			height: parseInt(1254 + (100 * Math.random() - 200))
 		},
 		args: [
+			'--incognito',
 			'--no-sandbox',
 			'--disable-dev-shm-usage',
 			'--disable-setuid-sandbox',
@@ -101,7 +102,8 @@ function* browserEntry() {
 	browser = yield puppeteer.launch(pupConfigs);
 
 	STATE('opening page');
-	page = yield browser.newPage();
+	// page = yield browser.newPage();
+	const [page] = yield browser.pages();
 	if (args.proxy) {
 		yield page.authenticate({
 			username: args.proxy.name,
