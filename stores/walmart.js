@@ -104,14 +104,15 @@ module.exports = {
 		log(url);
 
 
-		// Choose the first available purchase option
-		waitfor = traffic.match('b.wal.co/beacon.js');
-		yield click(page, 'button[class*="prod-ProductCTA"]');
+		// // Choose the first available purchase option
+		// waitfor = traffic.match('b.wal.co/beacon.js');
+		// yield click(page, 'button[class*="prod-ProductCTA"]');
 
-		// Go to checkout page
-		yield waitfor; // wait for cart add confirmation
+		// // Go to checkout page
+		// yield waitfor; // wait for cart add confirmation
+		waitfor = traffic.match('walmart.com/checkout.prefetch');
 		yield nav.go(page, 'https://www.walmart.com/checkout');
-
+		yield waitfor;
 
 		function asyncButton(buttonName) {
 			page.waitForSelector(buttonName, { visible: true, timeout: 10 * 60 * sec })
