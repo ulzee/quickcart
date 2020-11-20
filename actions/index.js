@@ -15,4 +15,5 @@ module.exports = {
 	exists: require('./exists'),
 	watch: require('./watch'),
 	window: require('./window'),
+	sns: require('./sns'),
 };

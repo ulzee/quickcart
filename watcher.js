@@ -13,6 +13,7 @@ const fs = require('fs');
 const utils = require('./utils');
 let args = yargs(process.argv).argv;
 
+const SnsService = actions.sns.init();
 
 const log = (msg) => {
 	console.log(`[${args.store}]`, msg);
@@ -135,12 +136,10 @@ function* browserEntry() {
 
 
 	STATE('INSTOCK');
+	yield actions.sns.send(SnsService, `[${args.store}] ${args.item}:\n${args.url}`);
 	yield actions.window.maximize(minHandle);
 
-
-
-
-
+	STATE('Awating user');
 	throw new EscapeError();
 }
 
