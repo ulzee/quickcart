@@ -49,9 +49,9 @@ module.exports = {
 		yield waitfor;
 	},
 	*standby(page, args) {
-		yield page.waitForSelector('.product-data-value');
-
 		while(true) {
+			yield page.waitForSelector('.product-data-value');
+
 			const pageSKU = yield page.$eval(
 				'.sku .product-data-value',
 				el => el.textContent.trim(' \t\n'));
@@ -86,6 +86,8 @@ module.exports = {
 			}
 			log('Waiting: ' + waitTime.toFixed(2));
 			yield page.waitForTimeout(waitTime * sec);
+
+			if (args.callback) yield args.callback();
 		}
 	},
 	*checkout(page, args) {

@@ -116,6 +116,20 @@ function* browserEntry() {
 		rapid: 1,
 		rapidWindow: 0 // don't enable rapid reload
 	}
+	args.reload = {
+		interval: 5 // seconds to refresh any login/api tokens
+	}
+	let lastRefresh = Date.now();
+	args.callback = function*() {
+		// reload every N minutes to keep login
+		const mil = Date.now() - lastRefresh;
+		const elapsedSec = mil / 1000;
+		if (elapsedSec > args.reload.interval * 60) {
+			log('Reloading...');
+			yield vendor.visit(page, args.url);
+			lastRefresh = Date.now();
+		}
+	}
 	yield vendor.standby(page, args);
 
 
