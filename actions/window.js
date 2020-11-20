@@ -9,6 +9,7 @@ module.exports = {
 		return session;
 	},
 	*maximize(session) {
+		const {windowId} = yield session.send('Browser.getWindowForTarget');
 		yield session.send('Browser.setWindowBounds', {windowId, bounds: {windowState: 'maximized'}});
 		return session;
 	},
