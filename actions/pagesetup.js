@@ -40,14 +40,16 @@ module.exports = (page, args, blockAssets=['.jpg', '.png', '.gif', '.jpeg', '.sv
 	});
 
 	// Log any responses that look bad (ban status etc)
-	const logFile = `logs/${args.record.spawnid}.log`;
-	fs.writeFileSync(logFile, '', 'utf8');
+	if (args.logFile) {
+		const logFile = `logs/${args.record.spawnid}.log`;
+		fs.writeFileSync(logFile, '', 'utf8');
+	}
 	page.on('response', res => {
 		const url = res.url();
 		const status = res.status();
 
-		if (status >= 400) {
-			fs.appendFileSync(logFile, `${status}\t${url}\n`, 'utf8');
+		if (status >= 400 && args.logFile) {
+			fs.appendFileSync(args.logFile, `${status}\t${url}\n`, 'utf8');
 		}
 
 		if (!banned) {

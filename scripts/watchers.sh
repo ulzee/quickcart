@@ -17,7 +17,7 @@ echo $item # target
 echo $sync
 # echo "Debug: $debug"
 
-pm2 start watcher.js --no-autorestart --name=$tag -- \
+pm2 start watcher.js --watch --name=$tag -- \
 	--store=$store --instance=$index \
 	--url=$url \
 	--item=$item \
