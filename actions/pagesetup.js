@@ -15,7 +15,7 @@ function getPath(url) {
 	return null;
 }
 
-module.exports = (page, args) => {
+module.exports = (page, args, blockAssets=['.jpg', '.png', '.gif', '.jpeg', '.svg', '/i/', 'image', 'webp']) => {
 
 	page.setDefaultNavigationTimeout(5 * 1000)
 
@@ -29,9 +29,8 @@ module.exports = (page, args) => {
 		}
 
 		const url = res.url();
-		const assets = ['.jpg', '.png', '.gif', '.jpeg', '.svg', '/i/', 'image', 'webp'];
 		const path = getPath(url);
-		if (path && assets.some(one => path.includes(one))) {
+		if (path && blockAssets.some(one => path.includes(one))) {
 			res.abort();
 			return;
 		}

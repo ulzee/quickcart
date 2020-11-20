@@ -14,4 +14,5 @@ module.exports = {
 	traffic: require('./traffic'),
 	exists: require('./exists'),
 	watch: require('./watch'),
+	window: require('./window'),
 };

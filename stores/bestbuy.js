@@ -76,7 +76,14 @@ module.exports = {
 
 			if (added) break;
 
-			const waitTime = utils.eta();
+
+			let waitTime = utils.eta();
+			if (args.wait) {
+				waitTime = utils.eta(
+					inSeconds=args.wait.inSeconds,
+					rapid=args.wait.rapid,
+					rapidWindow=args.wait.rapidWindow)
+			}
 			log('Waiting: ' + waitTime.toFixed(2));
 			yield page.waitForTimeout(waitTime * sec);
 		}
