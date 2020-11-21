@@ -58,6 +58,7 @@ module.exports = (page, args, blockAssets=['.jpg', '.png', '.gif', '.jpeg', '.sv
 			if ([401, 403, 405, 501, 504].includes(status)) {
 				// save this proxy info to a blacklist
 
+				console.log(status, url);
 				// FIXME: this doesnt catch dynamic bans (i.e. during login etc)
 
 				banned = true;
