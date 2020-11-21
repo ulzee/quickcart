@@ -114,8 +114,10 @@ module.exports = {
 				}
 			}, res => {
 				log(res.body);
-				const { ItemsAddResponse } = res.body;
-				const [ result ] = ItemsAddResponse;
+				const obj = JSON.parse(res.body);
+				const { ItemsAddResponse } = obj;
+				log(ItemsAddResponse.length);
+				const result = ItemsAddResponse[0];
 				if (result.errors && result.errors.length) {
 					return false
 				}
