@@ -2,6 +2,13 @@
 const fs = require('fs');
 const Papa = require('papaparse');
 
+Array.prototype.last=function(){
+	if (!this.length) {
+		return null;
+	}
+	return this[this.length - 1];
+};
+
 module.exports = {
 	sec: 1000,
 	mnt: 60 * 1000,
@@ -48,8 +55,8 @@ module.exports = {
 		}
 		return false;
 	},
-	account(store, aid) {
-		const raw = fs.readFileSync('assets/accounts.tsv', 'utf8');
+	account(store, aid, lookup='assets/accounts.tsv') {
+		const raw = fs.readFileSync(lookup, 'utf8');
 		const entries = Papa.parse(raw, { header: true })
 			.data
 			.filter(ent => ent.store == store);

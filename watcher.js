@@ -6,12 +6,11 @@ const nav = require('./actions/nav');
 const co = require('co');
 const stores = require('./stores');
 const actions = require('./actions');
-const { proxy, sec } = require('./utils');
-const { app, pagesetup } = require('./actions');
 const yargs = require('yargs/yargs');
-const fs = require('fs');
 const utils = require('./utils');
 let args = yargs(process.argv).argv;
+
+args.account = utils.account(args.store, 0, lookup='assets/live-accounts.tsv');
 
 const SnsService = actions.sns.init();
 
@@ -87,16 +86,12 @@ function* browserEntry() {
 	STATE('opening page');
 	const [page] = yield browser.pages();
 
-	pagesetup(page, args);
+	actions.pagesetup(page, args);
 	actions.traffic.setup(page, args);
 
 	console.log('[MAIN] Ready...');
 
 	STATE('priming...');
-	args.account = {
-		user: 'ul1994@gmail.com',
-		pass: 'Ulzeean1!!',
-	}
 	yield vendor.prime(page, args);
 
 
