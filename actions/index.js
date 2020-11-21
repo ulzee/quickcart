@@ -16,4 +16,5 @@ module.exports = {
 	watch: require('./watch'),
 	window: require('./window'),
 	sns: require('./sns'),
+	discord: require('./discord'),
 };

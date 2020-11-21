@@ -10,8 +10,6 @@ const yargs = require('yargs/yargs');
 const utils = require('./utils');
 let args = yargs(process.argv).argv;
 
-const SnsService = actions.sns.init();
-
 const log = (msg) => {
 	console.log(`[${args.store}]`, msg);
 }
@@ -52,6 +50,8 @@ const vendor = stores[args.store];
 
 let browser = null;
 function* browserEntry() {
+
+	const DiscordService = yield actions.discord.init();
 
 	const monitor = {
 		w: 1024, h: 800 ,
@@ -114,7 +114,7 @@ function* browserEntry() {
 		rapidWindow: 0 // don't enable rapid reload
 	}
 	args.reload = {
-		interval: 5 // seconds to refresh any login/api tokens
+		interval: 1 // seconds to refresh any login/api tokens
 	}
 	let lastRefresh = Date.now();
 	args.callback = function*() {
@@ -132,7 +132,7 @@ function* browserEntry() {
 
 
 	STATE('INSTOCK');
-	yield actions.sns.send(SnsService, `[${args.store}] ${args.item}:\n${args.url}`);
+	yield DiscordService.send(`[${args.store}] ${args.item}:\n${args.url}`);
 	yield actions.window.maximize(minHandle);
 
 	STATE('Awating user');
