@@ -10,8 +10,6 @@ const yargs = require('yargs/yargs');
 const utils = require('./utils');
 let args = yargs(process.argv).argv;
 
-args.account = utils.account(args.store, 0, lookup='assets/live-accounts.tsv');
-
 const SnsService = actions.sns.init();
 
 const log = (msg) => {
@@ -19,6 +17,9 @@ const log = (msg) => {
 }
 global.log = log;
 log('initial');
+
+args.account = utils.account(args.store, 0, lookup='assets/live-accounts.tsv');
+log(args.account);
 
 class EscapeError extends Error {
 	constructor(message='Escaping Browsercontrol') {

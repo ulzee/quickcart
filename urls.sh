@@ -11,7 +11,7 @@ adorama_ps5="https://www.adorama.com/so3005718.html"
 walmart_debug="https://www.walmart.com/ip/Apple-AirPods-with-Charging-Case-Latest-Model/604342441"
 target_debug="https://www.target.com/p/marvel-39-s-spider-man-miles-morales-launch-edition-8211-playstation-5/-/A-81255580"
 bestbuy_debug="https://www.bestbuy.com/site/apple-airpods-with-charging-case-latest-model-white/6084400.p?skuId=6084400"
-bjs_debug="https://www.bjs.com/product/Clorox-Clean-Up-Cleaner-with-Bleach-Spray-Bottle-32-oz-with-Refill-Bottle-180-oz/3000000000000154389"
+bjs_debug="https://www.bjs.com/product/cascade-platinum-actionpacs-dishwasher-detergent-92-ct/3000000000001290851"
 
 #xsx
 bestbuy_xsx="https://www.bestbuy.com/site/microsoft-xbox-series-x-1tb-console-black/6428324.p"

@@ -54,21 +54,36 @@ module.exports = {
 	*standby(page, args) {
 		while(true) {
 			yield page.waitForSelector('.add-to-cart-wrapper');
+			yield page.waitForSelector('#bjs-universal-app-state');
 
-			const catEntryId = args.url.split('/').last();
+			const blob = yield page.$eval('#bjs-universal-app-state', el => el.innerHTML.split('&q;').join('\"'));
 
+			let catEntryId = null;
+			const pageInfo = JSON.parse(blob);
+			for (const prop in pageInfo) {
+				if (Object.keys(pageInfo[prop]).includes('itemAvailDetails')) {
+					catEntryId = Object.keys(pageInfo[prop].itemAvailDetails)[0];
+				}
+			}
+
+			log(`SKU: ${catEntryId}`);
+
+			// NOTE: actual id used to cart isn't the same as url
+			// const catEntryId = args.url.split('/').last().split('?')[0];
+
+			// BJs doesnt ship to Cali - pointing to Garrett's addr
 			const itemList = [
 				{
 					catEntryId,
 					partNumber: '',
-					physicalStoreId: '0096',
+					physicalStoreId: '0077',
 					pickUpInStore: 'N',
 					quantity: 1,
-					serviceZipcode: '90024'
+					serviceZipcode: '10603',
+					shippingRestriction: 'false',
 				}
 			];
 
-			log(`SKU: ${pageSKU}`);
 			const added = yield actions.atc(page, {
 				url: 'https://api.bjs.com/digital/live/api/v1.1/storeId/10201/shoppingCartItem',
 				params: {
@@ -78,7 +93,7 @@ module.exports = {
 						"Accept-Language": "en-US,en;q=0.5",
 						"Content-Type": "application/json; charset=UTF-8",
 						"x-ibm-client-id": "7bf4a236-423b-4565-b221-3d51fbce1cbe",
-						"DEFAULT_CLUB_ID": "0096"
+						"DEFAULT_CLUB_ID": "0077"
 					},
 					referrer: args.url,
 					body: JSON.stringify({
@@ -98,10 +113,18 @@ module.exports = {
 					method: 'POST',
 				}
 			}, res => {
-				const { itemsAddResponse } = res.body;
-				const [ result ] = itemsAddResponse;
+				log(res.body);
+				const { ItemsAddResponse } = res.body;
+				const [ result ] = ItemsAddResponse;
 				if (result.errors && result.errors.length) {
 					return false
+				}
+
+				if (result.addToCartSuccess && result.addToCartSuccess == 'false') {
+					if (result.errorMessage) {
+						log(result.errorMessage);
+						return false;
+					}
 				}
 
 				return true;

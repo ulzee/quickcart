@@ -55,11 +55,10 @@ module.exports = (page, args, blockAssets=['.jpg', '.png', '.gif', '.jpeg', '.sv
 		if (!banned) {
 			// check if not already in shutdown after being banned
 
-			if ([401, 403, 405, 501, 504].includes(status)) {
+			if ([401, 403, 405, 501, 504].includes(status) && !url.includes('paypal')) {
 				// save this proxy info to a blacklist
 
 				console.log(status, url);
-				// FIXME: this doesnt catch dynamic bans (i.e. during login etc)
 
 				banned = true;
 			}
