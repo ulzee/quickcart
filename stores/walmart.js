@@ -98,6 +98,9 @@ module.exports = {
 
 		}
 	},
+	*manual(page, args) {
+		yield nav.go(page, 'https://www.walmart.com/checkout');
+	},
 	*checkout(page, args) {
 		let {
 			url,

@@ -144,9 +144,16 @@ function* browserEntry() {
 	yield vendor.visit(page, args.url);
 
 	if (args.sync) {
-		// wait until given time to start checkout
-		const buffer = -5; // -5s
-		const waitTime = utils.eta(inSeconds=60 * 60) + buffer; // top of the hour
+		// adjust retry params to be rapid
+		args.wait = {
+			inSeconds: 0.5,  // retry every 1/2 seconds default
+			rapid: 0,       // no wait between rapid checks
+			rapidWindow: 10 // rapid in first 30 seconds
+		}
+
+		// now wait until next top of hour to start checkout
+		const buffer = -3; // -5s
+		const waitTime = utils.eta(inSeconds=configs.launchTime) + buffer; // top of the hour
 		STATE('Waiting: ' + waitTime.toFixed(2));
 		yield page.waitForTimeout(waitTime * sec);
 	}
@@ -161,6 +168,11 @@ function* browserEntry() {
 		yield vendor.visit(page, args.url); // reload page
 	}
 	yield vendor.standby(page, args);
+
+	if (args.manual) {
+		yield page.$eval('body', el => el.style.background = 'rgb(150, 255, 150)');
+		throw new Error('Breakpoint');
+	}
 
 	// Checkout logic
 	STATE('checking out...');
