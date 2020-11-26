@@ -75,6 +75,7 @@ module.exports = {
 			});
 
 			if (added) break;
+			global.lastCheckTime = Date.now();
 
 
 			let waitTime = utils.eta();

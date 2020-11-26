@@ -51,7 +51,7 @@ const vendor = stores[args.store];
 let browser = null;
 function* browserEntry() {
 
-	const DiscordService = yield actions.discord.init();
+	const DiscordService = yield actions.discord.init(args);
 
 	const monitor = {
 		w: 1024, h: 800 ,

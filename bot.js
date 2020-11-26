@@ -106,7 +106,7 @@ function* browserEntry() {
 
 	STATE('opening page');
 	// page = yield browser.newPage();
-	const [page] = yield browser.pages();
+	[page] = yield browser.pages();
 	if (args.proxy) {
 		yield page.authenticate({
 			username: args.proxy.name,
@@ -171,6 +171,9 @@ function* browserEntry() {
 
 	if (args.manual) {
 		yield page.$eval('body', el => el.style.background = 'rgb(150, 255, 150)');
+		if (vendor.manual) {
+			yield vendor.manual(page, args);
+		}
 		throw new Error('Breakpoint');
 	}
 
