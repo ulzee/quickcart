@@ -1,5 +1,6 @@
 
 const { stealthMode, proxyChoice, monitor, exe, userAgent, msMode } = require('./configs');
+const configs = require('./configs');
 const io = require('@pm2/io')
 const nav = require('./actions/nav');
 const co = require('co');
@@ -25,7 +26,7 @@ if (stealthMode[args.store]) {
 
 app.instance();
 args.record = app.record;
-args.account = utils.account(args.store, args.accountid);
+args.account = utils.account(args.store, args.accountid, configs.accountsList);
 args.logid = `${args.store}_${args.record.spawnid}_${args.accountid}`;
 console.log('[MAIN] ID:', args.record.spawnid);
 console.log(args.account);
@@ -59,13 +60,14 @@ let page = null;
 function* browserEntry() {
 
 	const vendor = stores[args.store];
+	if (!vendor) throw new Error('Store is not defined...');
 
 	// allocate a proxy for every additional bots
-	if (msMode && !isMaster) {
+	if (msMode && !isMaster && configs.accountsList == 'assets/accounts.tsv') {
 		console.log('[MAIN] Using proxy');
 		const proxyList = proxyChoice[args.store];
 		const pspec = proxyList ? proxy.list(proxyList) : null;
-		args.proxy = pspec;
+		args.proxy = pspec; // NOTE: disabling all proxies for now
 	}
 
 	if (msMode && isMaster) {
@@ -143,7 +145,7 @@ function* browserEntry() {
 
 	if (args.sync) {
 		// wait until given time to start checkout
-		const buffer = 10; // buffer over time in milliseconds
+		const buffer = -5; // -5s
 		const waitTime = utils.eta(inSeconds=60 * 60) + buffer; // top of the hour
 		STATE('Waiting: ' + waitTime.toFixed(2));
 		yield page.waitForTimeout(waitTime * sec);

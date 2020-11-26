@@ -1,7 +1,7 @@
 
 module.exports = {
 	// gamestop: require('./gamestop'),
-	// walmart: require('./walmart'), // I give up lol
+	walmart: require('./walmart'),
 	// bnh: require('./bnh'),
 	// kohls: require('./kohls'),
 	bestbuy: require('./bestbuy'),

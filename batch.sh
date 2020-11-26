@@ -2,22 +2,25 @@
 source ./urls.sh
 
 store=$1
-num=$2
+item=$4
+sync=$5
 
-for index in $(seq 1 $num)
+for index in $(seq $2 $3)
 do
-	tag="$store.$index"
-	url_var=$store
+	tag="$store.$item.$index"
+	url_var="${store}_${item}"
 	url=${!url_var}
 	echo ""
 	echo "Name : $tag"
 	echo "URL  : $url"
 	echo "Debug: $debug"
+	echo "Sync : $sync"
 
 	pm2 start bot.js --no-autorestart --name=$tag -- \
 		--store=$store --accountid=$index \
 		--url=$url \
-		--debug=$debug
+		--item=$item \
+		--sync=$sync
 done
 
 

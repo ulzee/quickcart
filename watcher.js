@@ -114,7 +114,7 @@ function* browserEntry() {
 		rapidWindow: 0 // don't enable rapid reload
 	}
 	args.reload = {
-		interval: 1 // seconds to refresh any login/api tokens
+		interval: 5 // seconds to refresh any login/api tokens
 	}
 	let lastRefresh = Date.now();
 	args.callback = function*() {

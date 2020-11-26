@@ -50,25 +50,45 @@ module.exports = {
 		yield page.waitForSelector('.shipped-by-newegg');
 	},
 	*standby(page, args) {
-		yield page.waitForSelector('.shipped-by-newegg');
+		while(true) {
+			yield page.waitForSelector('.shipped-by-newegg');
 
-		while (true) {
+			const pageSKU = yield page.$eval(
+				'.sku .product-data-value',
+				el => el.textContent.trim(' \t\n'));
 
-			try {
-				yield page.waitForSelector('#ProductBuy .btn-primary', { timeout: 10 });
-				break;
+			log(`SKU: ${pageSKU}`);
+			const added = yield actions.atc(page, {
+				url: 'https://www.bestbuy.com/cart/api/v1/addToCart',
+				params: {
+					headers: {
+						"User-Agent": args.userAgent,
+						"Accept": "application/json",
+						"Accept-Language": "en-US,en;q=0.5",
+						"Content-Type": "application/json; charset=UTF-8"
+					},
+					referrer: args.url,
+					body: JSON.stringify({ items: [{skuId: pageSKU }]}),
+					method: 'POST',
+				}
+			}, res => {
+				return res.status < 300;
+			});
+
+			if (added) break;
+
+
+			let waitTime = utils.eta();
+			if (args.wait) {
+				waitTime = utils.eta(
+					inSeconds=args.wait.inSeconds,
+					rapid=args.wait.rapid,
+					rapidWindow=args.wait.rapidWindow)
 			}
-			catch (e) {
-				let oosText = yield page.$eval('#ProductBuy .btn-secondary', el => el ? el.textContent : null);
+			log('Waiting: ' + waitTime.toFixed(2));
+			yield page.waitForTimeout(waitTime * sec);
 
-				log('OOS: ' + oosText);
-
-				const waitTime = utils.eta();
-				log('Waiting: ' + waitTime.toFixed(2));
-				yield page.waitForTimeout(waitTime * sec);
-
-				yield nav.bench(page, args.url, waitFor='.shipped-by-newegg', retry=true);
-			}
+			if (args.callback) yield args.callback();
 		}
 	},
 	*checkout(page, args) {

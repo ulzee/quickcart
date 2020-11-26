@@ -1,22 +1,23 @@
 
 source ./urls.sh
 
-# stores="bestbuy target walmart newegg adorama kohls"
-stores="bestbuy target walmart"
-
+store=$1
+item=$2
 index=0
-for store in $stores
-do
-	tag="$store.$index"
-	url_var=$store
-	url=${!url_var}
-	echo $tag
-	echo $url
+sync=$3
 
-	pm2 start bot.js --no-autorestart --name=$tag -- \
-		--store=$store --accountid=$index \
-		--url=$url \
-		--debug=$debug
-done
+tag="$store.$item.$index"
+url_var="${store}_${item}"
+url=${!url_var}
+echo $tag
+echo $url_var
+echo $url
+echo $item # target
+echo $sync
+# echo "Debug: $debug"
 
-
+pm2 start bot.js --no-autorestart --name=$tag -- \
+	--store=$store --accountid=$index \
+	--url=$url \
+	--item=$item \
+	--sync=$sync
