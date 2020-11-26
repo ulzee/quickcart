@@ -16,9 +16,8 @@ bjs_debug="https://www.bjs.com/product/cascade-platinum-actionpacs-dishwasher-de
 #xsx
 bestbuy_xsx="https://www.bestbuy.com/site/microsoft-xbox-series-x-1tb-console-black/6428324.p"
 target_xsx="https://www.target.com/p/xbox-series-x-console/-/A-80790841"
-newegg_xsx="https://www.newegg.com/Product/ComboDealDetails?ItemList=Combo.4205033"
-# adorama="https://www.adorama.com/xbrrt00001.html"
-# bnh="https://www.bhphotovideo.com/c/product/1600080-REG/microsoft_rrt_00001_xbox_series_x_1tb.html"
+newegg_xsxa="https://www.newegg.com/Product/ComboDealDetails?ItemList=Combo.4205033"
+newegg_xsxb="https://www.newegg.com/Product/ComboDealDetails?ItemList=Combo.4205032"
 bjs_xsx="https://www.bjs.com/product/xbox-series-x-1tb-console/3000000000002702247"
 
 # NVIDIA
