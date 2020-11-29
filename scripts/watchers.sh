@@ -21,4 +21,6 @@ pm2 start watcher.js --watch --name=$tag -- \
 	--store=$store --instance=$index \
 	--url=$url \
 	--item=$item \
-	--sync=$sync
+	--sync=$sync \
+	--mode=watch \
+	--check=10

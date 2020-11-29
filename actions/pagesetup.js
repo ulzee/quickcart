@@ -52,16 +52,19 @@ module.exports = (page, args, blockAssets=['.jpg', '.png', '.gif', '.jpeg', '.sv
 			fs.appendFileSync(args.logFile, `${status}\t${url}\n`, 'utf8');
 		}
 
-		if (!banned) {
-			// check if not already in shutdown after being banned
+		// DEPRECATED: we need a better system to detect bans
+		// NOTE: most major sites dont ban outright, you get shadowbanned (at checkout etc)
+		// if (!banned) {
+		// 	// check if not already in shutdown after being banned
 
-			if ([401, 403, 405, 501, 504].includes(status) && !url.includes('paypal')) {
-				// save this proxy info to a blacklist
+		// 	if ([401, 403, 405].includes(status) && !url.includes('paypal')) {
+		// 		// save this proxy info to a blacklist
 
-				console.log(status, url);
+		// 		console.log('Detected banned response...');
+		// 		console.log(status, url);
 
-				banned = true;
-			}
-		}
+		// 		banned = true;
+		// 	}
+		// }
 	});
 }

@@ -50,6 +50,7 @@ function* go(page, url, timeout=5) {
 	const ok = navOk && !banned;
 
 	if (!ok) {
+		console.log({ navOk, banned })
 		throw new BannedError();
 	}
 

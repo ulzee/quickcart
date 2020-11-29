@@ -71,7 +71,18 @@ module.exports = {
 					method: 'POST',
 				}
 			}, res => {
-				return res.status < 300;
+
+				// Add to cart was successful
+				if (res.status < 300) return true;
+
+				if (args.mode == 'watch') {
+					// NOTE: this indicates the start of the queue
+					//  Notifications should go out when this happens
+					//  Disabled when running normally
+					if (res.body.includes('CONSTRAINED_ITEM')) return true;
+				}
+
+				return false;
 			});
 
 			if (added) break;

@@ -109,12 +109,12 @@ function* browserEntry() {
 	const minHandle = yield actions.window.minimize(page);
 
 	args.wait = {
-		inSeconds: 20, // check every 20 seconds
+		inSeconds: args.check ? parseInt(args.check) : 5, // check every 20 seconds
 		rapid: 1,
 		rapidWindow: 0 // don't enable rapid reload
 	}
 	args.reload = {
-		interval: 5 // seconds to refresh any login/api tokens
+		interval: 5  // minutes to refresh any login/api tokens
 	}
 	let lastRefresh = Date.now();
 	args.callback = function*() {
