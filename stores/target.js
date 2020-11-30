@@ -189,6 +189,8 @@ module.exports = {
 
 			if (added) break;
 
+			global.lastCheckTime = Date.now();
+
 			const waitTime = utils.eta();
 			log('Waiting: ' + waitTime.toFixed(2));
 			yield page.waitForTimeout(waitTime * sec);
