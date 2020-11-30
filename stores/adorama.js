@@ -1,7 +1,8 @@
 
 const { sec } = require('../utils');
 const utils = require('../utils');
-const { nav, any, inp, sel, paste, click } = require('../actions');
+const { nav, click } = require('../actions');
+const actions = require('../actions');
 
 const domain = 'https://www.adorama.com';
 
@@ -23,8 +24,8 @@ module.exports = {
 
 		// yield nav.go(page, 'https://www.adorama.com/Als.Mvc/nspc/MyAccount');
 		// yield page.waitForTimeout(5 * sec);
-		yield page.type('#login-email', user, { delay: 200 });
-		yield page.type('#login-pwd', pass, { delay: 200 });
+		yield page.type('#login-email', user, { delay: 10 });
+		yield page.type('#login-pwd', pass, { delay: 10 });
 		yield page.waitForTimeout(sec);
 
 		yield page.click('.login-form button');
@@ -44,24 +45,71 @@ module.exports = {
 		yield nav.bench(page, url, waitFor='.primary-info');
 	},
 	*standby(page, args) {
-		yield page.waitForSelector('.add-to-cart');
 
 		while (true) {
-			const buttonText = yield page.$eval('.add-to-cart', el => el.textContent);
+			yield page.waitForSelector('.your-price');
 
-			if (buttonText.includes('Cart')) {
-				break;
+			const SKU = yield page.$eval('.product-sku span', el => el.innerHTML);
+
+			log(`SKU: ${SKU}`);
+			const added = yield actions.atc(page, {
+				url: 'https://www.adorama.com/api/user/order/addToCart',
+				params: {
+					headers: {
+						"User-Agent": args.userAgent,
+						"Accept": "application/json, text/javascript, */*; q=0.01",
+						"Accept-Language": "en-US,en;q=0.5",
+						"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+						"X-Requested-With": "XMLHttpRequest"
+					},
+					referrer: args.url,
+					body: JSON.stringify({
+						clientTimeStamp: Date.now(),
+						cartItems: { [SKU]: { qty: '1' } },
+						type: 'miniCart',
+						isEmailPrice: false,
+						pageType: 'productPage'
+					}),
+					method: 'POST',
+				}
+			}, res => {
+
+				console.log(res);
+				const obj = JSON.parse(res.body);
+
+				if (obj.status == 'error') {
+					if (obj.messages && obj.messages[0]) {
+						log(obj.messages[0].text);
+					}
+					return false;
+				}
+				else {
+					log(obj.status);
+					return true;
+				}
+			});
+
+			if (added) break;
+			global.lastCheckTime = Date.now();
+
+
+			let waitTime = utils.eta();
+			if (args.wait) {
+				waitTime = utils.eta(
+					inSeconds=args.wait.inSeconds,
+					rapid=args.wait.rapid,
+					rapidWindow=args.wait.rapidWindow)
 			}
-			else {
-				log('OOS: ' + buttonText);
+			log('Waiting: ' + waitTime.toFixed(2));
+			yield page.waitForTimeout(waitTime * sec);
 
-				const waitTime = utils.eta();
-				log('Waiting: ' + waitTime.toFixed(2));
-				yield page.waitForTimeout(waitTime * sec);
-
-				yield nav.bench(page, args.url, waitFor='.add-to-cart', retry=true);
-			}
+			if (args.callback) yield args.callback();
 		}
+	},
+	*manual(page, args) {
+		// wait for confirmation prompt then go to cart
+		yield nav.go(page, 'https://www.adorama.com/als.mvc/nspc/revised');
+		yield page.waitForSelector('label[for="payby-cc"]');
 	},
 	*checkout(page, args) {
 		let {

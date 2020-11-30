@@ -169,7 +169,7 @@ function* browserEntry() {
 	}
 	yield vendor.standby(page, args);
 
-	if (args.manual) {
+	if (args.manual == 'manual') {
 		yield page.$eval('body', el => el.style.background = 'rgb(150, 255, 150)');
 		if (vendor.manual) {
 			yield vendor.manual(page, args);
