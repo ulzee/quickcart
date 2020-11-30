@@ -12,6 +12,7 @@ const yargs = require('yargs/yargs');
 const fs = require('fs');
 const utils = require('./utils');
 let args = yargs(process.argv).argv;
+const randomUseragent = require('random-useragent');
 
 const isMaster = args.accountid == '0';
 
@@ -63,7 +64,7 @@ function* browserEntry() {
 	if (!vendor) throw new Error('Store is not defined...');
 
 	// allocate a proxy for every additional bots
-	if (msMode && !isMaster && configs.accountsList == 'assets/accounts.tsv') {
+	if ((true || msMode) && !isMaster && configs.accountsList == 'assets/accounts.tsv') {
 		console.log('[MAIN] Using proxy');
 		const proxyList = proxyChoice[args.store];
 		const pspec = proxyList ? proxy.list(proxyList) : null;
@@ -114,7 +115,11 @@ function* browserEntry() {
 		});
 	}
 	yield page.goto('about:blank');
-	args.userAgent = userAgent;
+	// args.userAgent = userAgent;
+	args.userAgent = randomUseragent.getRandom(function (ua) {
+		const brand = ua.browserName === 'Firefox' || ua.browserName === 'Chrome';
+		return brand && parseFloat(ua.browserVersion) >= 20;
+	});
 	yield page.setUserAgent(args.userAgent);
 	console.log(yield browser.userAgent());
 
