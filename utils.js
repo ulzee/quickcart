@@ -9,7 +9,14 @@ Array.prototype.last=function(){
 	return this[this.length - 1];
 };
 
+class EscapeError extends Error {
+	constructor(message='Escaping Browsercontrol') {
+		super(message);
+	}
+}
+
 module.exports = {
+	EscapeError,
 	sec: 1000,
 	mnt: 60 * 1000,
 	taglog: (tag) => (msg) => console.log(`[${tag}] ${msg}`),

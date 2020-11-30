@@ -19,12 +19,6 @@ log('initial');
 args.account = utils.account(args.store, 0, lookup='assets/live-accounts.tsv');
 log(args.account);
 
-class EscapeError extends Error {
-	constructor(message='Escaping Browsercontrol') {
-		super(message);
-	}
-}
-
 args.record = {
 	spawnid: uuid().split('-')[0],
 }
@@ -136,7 +130,7 @@ function* browserEntry() {
 	yield actions.window.maximize(minHandle);
 
 	STATE('Awating user');
-	throw new EscapeError();
+	throw new utils.EscapeError();
 }
 
 

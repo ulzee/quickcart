@@ -170,11 +170,11 @@ function* browserEntry() {
 	yield vendor.standby(page, args);
 
 	if (args.manual == 'manual') {
-		yield page.$eval('body', el => el.style.background = 'rgb(150, 255, 150)');
 		if (vendor.manual) {
 			yield vendor.manual(page, args);
 		}
-		throw new Error('Breakpoint');
+		yield page.$eval('body', el => el.style.background = 'rgb(150, 255, 150)');
+		throw new utils.EscapeError();
 	}
 
 	// Checkout logic
@@ -227,20 +227,27 @@ function main() {
 			}
 		}
 		else {
-			STATE('FATAL ERR: ' + e);
 
-			const logFile = `logs/${args.record.spawnid}.log`;
-			fs.appendFileSync(logFile, e, 'utf8');
-
-			if (browser) {
-				page.screenshot({path: `logs/er_${args.logid}.png`})
-				.then(() => page.close())
-				.then(() => browser.close())
-				.then(() => console.log('[MAIN] Errord out'))
-				.catch(console.log);
+			if (e instanceof utils.EscapeError) {
+				STATE('ESCAPED');
+				throw e;
 			}
+			else {
+				STATE('FATAL ERR: ' + e);
 
-			throw e;
+				const logFile = `logs/${args.record.spawnid}.log`;
+				fs.appendFileSync(logFile, e, 'utf8');
+
+				if (browser) {
+					page.screenshot({path: `logs/er_${args.logid}.png`})
+					.then(() => page.close())
+					.then(() => browser.close())
+					.then(() => console.log('[MAIN] Errord out'))
+					.catch(console.log);
+				}
+
+				throw e;
+			}
 		}
 	});
 }
