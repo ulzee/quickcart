@@ -88,7 +88,7 @@ module.exports = {
 
 			console.log(`[LUMI] Choosing ${index}`);
 
-			const spec = lines[index];
+			const spec = lines[index % lines.length];
 			const [domain, port, name, pass] = spec.split(':');
 			const url = `${domain}:${port}`
 

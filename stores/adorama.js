@@ -18,7 +18,9 @@ module.exports = {
 		if (args.nologin) return;
 
 		// give up on this IP if pages too slow
-		yield nav.bench(page, 'https://www.adorama.com/Als.Mvc/nspc/MyAccount', waitFor='#login-email');
+		yield nav.go(page, 'https://www.adorama.com/Als.Mvc/nspc/MyAccount');
+		yield page.waitForSelector('#login-email', { timeout: 24 *60* 60 * sec })
+		// yield nav.bench(page, 'https://www.adorama.com/Als.Mvc/nspc/MyAccount', waitFor='#login-email');
 		yield page.waitForTimeout(5 * sec);
 
 
