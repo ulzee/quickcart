@@ -10,6 +10,12 @@ const domain = 'https://www.bestbuy.com';
 
 const vendor = 'bestbuy';
 
+function* visit(page, url) {
+	waitfor = traffic.match('bestbuy.com/api/tcfb/model.json');
+	yield nav.go(page, url);
+	yield waitfor;
+}
+
 module.exports = {
 	vendor,
 	home: domain,
@@ -43,12 +49,10 @@ module.exports = {
 
 		// yield setPickupStore(page, args);
 	},
-	*visit(page, url) {
-		waitfor = traffic.match('bestbuy.com/api/tcfb/model.json');
-		yield nav.go(page, url);
-		yield waitfor;
-	},
+	visit,
 	*standby(page, args) {
+		let refreshCounter = 0;
+
 		while(true) {
 			yield page.waitForSelector('.product-data-value');
 
@@ -82,8 +86,18 @@ module.exports = {
 					if (res.body.includes('CONSTRAINED_ITEM')) return true;
 				}
 
+				if (res.status == 403) {
+					refreshCounter += 1
+				}
+
 				return false;
 			});
+
+			if (refreshCounter == 2) {
+				// Refreshing will clear 403s hopefully
+				refreshCounter = 0;
+				yield visit(page, args.url);
+			}
 
 			if (added) break;
 			global.lastCheckTime = Date.now();
